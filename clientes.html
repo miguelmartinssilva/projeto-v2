@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0b0b0f">
+  <title>Clientes | Miguel Martins</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="config.js"></script>
+  <script>if (!sessaoValida()) { window.location.href = "login.html"; }</script>
+  <style>
+    :root {
+      --g1: #16a04b; --g2: #0e7a38; --g3: #1dd668;
+      --y1: #b8860b; --y3: #f0c040;
+      --r1: #9b1c35; --r2: #c0253d; --r3: #ff4466;
+      --p1: #7c3aed; --p3: #a78bfa;
+      --bg: #0b0b0f; --bg2: #111116; --bg3: #18181f; --bg4: #1e1e27;
+      --brd: #2a2a36; --brd2: #343444;
+      --tx: #eeeef5; --tx2: #9999b0; --tx3: #5a5a72;
+      --rad: 14px; --rads: 9px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0 }
+    html { scroll-behavior: smooth }
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--tx);
+      min-height: 100vh;
+      padding-bottom: 70px;
+      padding-top: 16px;
+    }
+
+    .page-header {
+      background: linear-gradient(135deg, #0b2318 0%, #0d1a26 50%, #1a0b14 100%);
+      margin: -16px -16px 20px -16px;
+      padding: 20px 16px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .page-header::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 80% at 50% 0%, rgba(22,160,75,.18), transparent);
+      pointer-events: none;
+    }
+    .page-header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      position: relative;
+      z-index: 2;
+    }
+    .page-header h1 em { font-style: normal; color: var(--g3); }
+    .page-header p { font-size: .82rem; color: var(--tx3); position: relative; z-index: 2; margin-top: 4px }
+
+    .container { padding: 0 16px; max-width: 1400px; margin: 0 auto }
+
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .stat-pill {
+      background: var(--bg2);
+      border: 1px solid var(--brd);
+      border-radius: 30px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all .18s;
+    }
+    .stat-pill:hover, .stat-pill.ativo { border-color: var(--g1); background: rgba(22,160,75,.08); }
+    .stat-pill span { font-size: .9rem; }
+    .stat-pill strong { font-family: 'Syne', sans-serif; font-weight: 700; color: var(--g3); }
+
+    .search-box {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 14px 16px 14px 44px;
+      background: var(--bg2);
+      border: 1px solid var(--brd);
+      border-radius: var(--rad);
+      color: var(--tx);
+      font-family: 'Outfit', sans-serif;
+      font-size: .95rem;
+    }
+    .search-box input:focus { outline: none; border-color: var(--g1); }
+    .search-box::before {
+      content: '';
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1rem;
+    }
+
+    .main-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .clients-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: calc(100vh - 280px);
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .client-card {
+      background: var(--bg2);
+      border: 1px solid var(--brd);
+      border-radius: var(--rad);
+      padding: 14px;
+      cursor: pointer;
+      transition: all .18s;
+      position: relative;
+    }
+    .client-card:hover { border-color: var(--g2); }
+    .client-card.selecionado {
+      border-color: var(--g1);
+      background: rgba(22,160,75,.06);
+      box-shadow: 0 0 0 1px var(--g1);
+    }
+
+    .client-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .client-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--g2), var(--p1));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .client-info { flex: 1; min-width: 0; }
+    .client-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: .95rem;
+      color: var(--tx);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .client-company { font-size: .75rem; color: var(--tx3); margin-top: 2px; }
+
+    .client-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: .65rem;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      padding: 4px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    .status-ativo { background: rgba(22,160,75,.15); color: var(--g3); }
+    .status-pendente { background: rgba(240,192,64,.15); color: var(--y3); }
+    .status-inativo { background: rgba(155,28,53,.15); color: var(--r3); }
+    .status-projeto { background: rgba(124,58,237,.15); color: var(--p3); }
+
+    .client-meta {
+      display: flex;
+      gap: 16px;
+      font-size: .75rem;
+      color: var(--tx2);
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--brd);
+    }
+    .client-meta span { display: flex; align-items: center; gap: 4px; }
+
+    .detail-panel {
+      background: var(--bg2);
+      border: 1px solid var(--brd);
+      border-radius: var(--rad);
+      padding: 20px;
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .detail-panel.open { display: flex; }
+
+    .detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .detail-avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--g2), var(--p1));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.5rem;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .detail-info { flex: 1; }
+    .detail-name { font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 800; }
+    .detail-company { font-size: .9rem; color: var(--tx3); margin-top: 2px; }
+    .detail-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+    .detail-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: .8rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: all .18s;
+    }
+    .btn-whatsapp { background: #25d366; color: #fff; }
+    .btn-whatsapp:hover { background: #20bd5a; }
+    .btn-orcamento { background: var(--p1); color: #fff; }
+    .btn-orcamento:hover { background: #6d28d9; }
+    .btn-editar { background: var(--bg3); border: 1px solid var(--brd); color: var(--tx2); }
+    .btn-editar:hover { border-color: var(--g1); color: var(--g3); }
+
+    .detail-section {
+      background: var(--bg3);
+      border-radius: var(--rads);
+      padding: 14px;
+    }
+    .detail-section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: .75rem;
+      color: var(--g3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .detail-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .detail-field {
+      flex: 1;
+      min-width: 140px;
+    }
+    .detail-field label {
+      display: block;
+      font-size: .65rem;
+      color: var(--tx3);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 4px;
+    }
+    .detail-field span { font-size: .9rem; color: var(--tx); }
+
+    .finance-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .finance-card {
+      background: var(--bg4);
+      border-radius: var(--rads);
+      padding: 12px;
+      text-align: center;
+    }
+    .finance-card label { display: block; font-size: .6rem; color: var(--tx3); text-transform: uppercase; margin-bottom: 4px; }
+    .finance-card span { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.1rem; }
+    .finance-card .val-green { color: var(--g3); }
+    .finance-card .val-yellow { color: var(--y3); }
+    .finance-card .val-red { color: var(--r3); }
+
+    .timeline-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .timeline-item {
+      display: flex;
+      gap: 10px;
+      font-size: .8rem;
+      padding-left: 12px;
+      border-left: 2px solid var(--brd);
+    }
+    .timeline-item:last-child { border-left: none; padding-left: 0; }
+    .timeline-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--g1);
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+    .timeline-date { color: var(--tx3); font-size: .7rem; min-width: 70px; }
+    .timeline-text { color: var(--tx); }
+
+    .empty-detail {
+      text-align: center;
+      color: var(--tx3);
+      padding: 40px 20px;
+    }
+    .empty-detail span { font-size: 3rem; display: block; margin-bottom: 12px; }
+
+    .empty-list {
+      text-align: center;
+      color: var(--tx3);
+      padding: 60px 20px;
+    }
+    .empty-list span { font-size: 3rem; display: block; margin-bottom: 12px; }
+
+    .btn-add-fixed {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--g1), var(--g3));
+      border: none;
+      color: #fff;
+      font-size: 1.5rem;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(22,160,75,.4);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--g1);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: .85rem;
+      font-weight: 600;
+      opacity: 0;
+      transition: transform .25s, opacity .25s;
+      z-index: 9999;
+      white-space: nowrap;
+    }
+    .toast.on { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    /* MODAL */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.75);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-overlay.open { display: flex }
+    .modal-box {
+      background: var(--bg2);
+      border: 1px solid var(--brd);
+      border-radius: var(--rad);
+      width: 100%;
+      max-width: 450px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      background: var(--bg3);
+      border-bottom: 1px solid var(--brd);
+    }
+    .modal-head h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--g3);
+    }
+    .modal-head button {
+      background: none;
+      border: none;
+      color: var(--tx3);
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .modal-body { padding: 16px }
+    .fg { margin-bottom: 14px }
+    .fg:last-child { margin-bottom: 0 }
+    .lbl {
+      display: block;
+      font-size: .68rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--tx2);
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--bg4);
+      border: 1.5px solid var(--brd);
+      border-radius: var(--rads);
+      color: var(--tx);
+      font-family: 'Outfit', sans-serif;
+      font-size: .9rem;
+    }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: var(--g1); }
+    input::placeholder, textarea::placeholder { color: var(--tx3) }
+    textarea { resize: vertical; min-height: 80px }
+    .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+    .btn { flex: 1; padding: 12px; border: none; border-radius: var(--rads); font-family: 'Syne', sans-serif; font-size: .9rem; font-weight: 700; cursor: pointer; }
+    .btn-primary { background: linear-gradient(135deg, var(--g1), var(--g3)); color: #fff; }
+    .btn-secondary { background: var(--bg3); border: 1.5px solid var(--brd); color: var(--tx2); }
+
+    /* BOTTOM NAV */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 62px;
+      background: rgba(17,17,22,.97);
+      border-top: 1px solid var(--brd);
+      display: flex;
+      align-items: stretch;
+      z-index: 999;
+    }
+    .bn-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      text-decoration: none;
+      color: var(--tx2);
+    }
+    .bn-item:hover, .bn-item.ativo { color: var(--g3); }
+    .bn-icon { font-size: 1.35rem; }
+    .bn-lbl { font-size: .58rem; text-transform: uppercase; letter-spacing: .8px; font-weight: 500; }
+
+    @media(min-width: 768px) {
+      body { padding-bottom: 0; padding-top: 24px; }
+      .page-header, .btn-add-fixed { display: none; }
+      .container { margin-left: 220px; padding: 0 32px; }
+      .main-layout { grid-template-columns: 380px 1fr; }
+      .clients-panel { max-height: calc(100vh - 180px); }
+      .detail-panel { display: flex !important; }
+      .toast { bottom: 24px; }
+      .bottom-nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: auto;
+        width: 220px;
+        height: 100vh;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        border-top: none;
+        border-right: 1px solid var(--brd);
+        padding: 60px 0 20px;
+        gap: 0;
+      }
+      .bottom-nav::before {
+        content: 'MM STUDIO';
+        display: block;
+        font-family: 'Syne', sans-serif;
+        font-size: .95rem;
+        font-weight: 800;
+        color: var(--g3);
+        padding: 0 20px 20px;
+        letter-spacing: 3px;
+      }
+      .bn-item {
+        flex: none;
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 12px;
+        padding: 13px 20px;
+      }
+      .bn-lbl { font-size: .78rem; letter-spacing: 1px; font-weight: 700; }
+      .bn-icon { font-size: 1.1rem; }
+      .bn-item.ativo { background: rgba(22,160,75,.12); border-left: 3px solid var(--g3); color: var(--g3); }
+    }
+  </style>
+</head>
+<body>
+
+<header class="page-header">
+  <h1>Clientes <em>CRM</em></h1>
+  <p>Gerencie clientes e acompanhe projetos</p>
+</header>
+
+<div class="container">
+
+  <div class="stats-bar">
+    <div class="stat-pill ativo" data-filter="todos" onclick="setFilter('todos')">
+      <span></span><strong id="stat-total">0</strong><span style="color:var(--tx2)">Todos</span>
+    </div>
+    <div class="stat-pill" data-filter="ativo" onclick="setFilter('ativo')">
+      <span></span><strong id="stat-ativos">0</strong><span style="color:var(--tx2)">Ativos</span>
+    </div>
+    <div class="stat-pill" data-filter="pendente" onclick="setFilter('pendente')">
+      <span></span><strong id="stat-pendentes">0</strong><span style="color:var(--tx2)">Pendentes</span>
+    </div>
+    <div class="stat-pill" data-filter="projeto" onclick="setFilter('projeto')">
+      <span></span><strong id="stat-projetos">0</strong><span style="color:var(--tx2)">Em Projeto</span>
+    </div>
+  </div>
+
+  <div class="search-box">
+    <input type="text" id="busca" placeholder="Buscar cliente..." oninput="renderClientes()">
+  </div>
+
+  <div class="main-layout">
+    <div class="clients-panel" id="clients-list"></div>
+
+    <div class="detail-panel" id="detail-panel">
+      <div class="empty-detail">
+        <span></span>
+        Selecione um cliente para ver os detalhes
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<button class="btn-add-fixed" onclick="abrirModalCliente()">+</button>
+
+<!-- MODAL CLIENTE -->
+<div class="modal-overlay" id="modal-cliente">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="modal-titulo">Novo Cliente</h3>
+      <button onclick="fecharModalCliente()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg">
+        <label class="lbl">Nome *</label>
+        <input type="text" id="cli-nome" placeholder="Nome completo ou empresa">
+      </div>
+      <div class="fg">
+        <label class="lbl">Telefone / WhatsApp</label>
+        <input type="tel" id="cli-telefone" placeholder="(00) 00000-0000">
+      </div>
+      <div class="fg">
+        <label class="lbl">Empresa</label>
+        <input type="text" id="cli-empresa" placeholder="Nome da empresa">
+      </div>
+      <div class="fg">
+        <label class="lbl">Instagram</label>
+        <input type="text" id="cli-instagram" placeholder="@usuario">
+      </div>
+      <div class="fg">
+        <label class="lbl">Status</label>
+        <select id="cli-status">
+          <option value="ativo">Ativo</option>
+          <option value="pendente">Pendente</option>
+          <option value="inativo">Inativo</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="lbl">Observações</label>
+        <textarea id="cli-obs" placeholder="Notas sobre o cliente..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="fecharModalCliente()">Cancelar</button>
+        <button class="btn btn-primary" onclick="salvarCliente()">Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast-msg"></div>
+
+<nav class="bottom-nav">
+  <a class="bn-item" href="/dashboard/"><span class="bn-icon"></span><span class="bn-lbl">Dashboard</span></a>
+  <a class="bn-item" href="index.html"><span class="bn-icon"></span><span class="bn-lbl">Orçamento</span></a>
+  <a class="bn-item ativo" href="clientes.html"><span class="bn-icon"></span><span class="bn-lbl">Clientes</span></a>
+  <a class="bn-item" href="financeiro.html"><span class="bn-icon"></span><span class="bn-lbl">Financeiro</span></a>
+  <a class="bn-item" href="historico.html"><span class="bn-icon"></span><span class="bn-lbl">Histórico</span></a>
+  <a class="bn-item" href="perfil.html"><span class="bn-icon"></span><span class="bn-lbl">Configurações</span></a>
+</nav>
+
+<script src="perfis.js"></script>
+<script>
+const ORCAMENTOS_KEY = HIST_KEY;
+
+let clienteEditandoId = null;
+let filterAtual = "todos";
+let clienteSelecionado = null;
+
+function getClientes() {
+  try { return JSON.parse(localStorage.getItem(CLIENTES_KEY)) || []; }
+  catch { return []; }
+}
+
+function saveClientes(lista) {
+  localStorage.setItem(CLIENTES_KEY, JSON.stringify(lista));
+}
+
+function getOrcamentos() {
+  try { return JSON.parse(localStorage.getItem(ORCAMENTOS_KEY)) || []; }
+  catch { return []; }
+}
+
+function getFinanceiro() {
+  try { return JSON.parse(localStorage.getItem(FINANCEIRO_KEY)) || []; }
+  catch { return []; }
+}
+
+function getFinanceiroCliente(clienteNome) {
+  const fin = getFinanceiro();
+  return fin.filter(f => f.descricao && f.descricao.toLowerCase().includes((clienteNome || "").toLowerCase()));
+}
+
+function getOrcamentosCliente(clienteNome) {
+  const orcs = getOrcamentos();
+  return orcs.filter(o => o.cliente && o.cliente.toLowerCase().includes((clienteNome || "").toLowerCase()));
+}
+
+function toast(msg, cor) {
+  const el = document.getElementById("toast-msg");
+  el.textContent = msg;
+  el.style.background = cor || "#16a04b";
+  el.classList.add("on");
+  setTimeout(() => el.classList.remove("on"), 2500);
+}
+
+function getInitials(nome) {
+  if (!nome) return "?";
+  const parts = nome.trim().split(" ");
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return parts[0].substring(0, 2).toUpperCase();
+}
+
+function getStatusCliente(cliente) {
+  const orcs = getOrcamentosCliente(cliente.nome);
+  const emAndamento = orcs.some(o => o.status === "aprovada" || o.status === "pago");
+  if (emAndamento) return "projeto";
+  if (cliente.status === "inativo") return "inativo";
+  if (cliente.status === "pendente") return "pendente";
+  return "ativo";
+}
+
+function getStatusLabel(status) {
+  const labels = { ativo: "Ativo", pendente: "Pendente", inativo: "Inativo", projeto: "Em Projeto" };
+  return labels[status] || status;
+}
+
+function formatMoney(val) {
+  return "R$ " + parseFloat(val || 0).toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+function setFilter(f) {
+  filterAtual = f;
+  document.querySelectorAll(".stat-pill").forEach(el => {
+    el.classList.toggle("ativo", el.dataset.filter === f);
+  });
+  renderClientes();
+}
+
+function abrirModalCliente(cliente = null) {
+  clienteEditandoId = cliente ? cliente.id : null;
+  document.getElementById("modal-titulo").textContent = cliente ? "Editar Cliente" : "Novo Cliente";
+  document.getElementById("cli-nome").value = cliente ? cliente.nome : "";
+  document.getElementById("cli-telefone").value = cliente ? cliente.telefone : "";
+  document.getElementById("cli-empresa").value = cliente ? cliente.empresa : "";
+  document.getElementById("cli-instagram").value = cliente ? cliente.instagram : "";
+  document.getElementById("cli-status").value = cliente ? (cliente.status || "ativo") : "ativo";
+  document.getElementById("cli-obs").value = cliente ? cliente.obs : "";
+  document.getElementById("modal-cliente").classList.add("open");
+}
+
+function fecharModalCliente() {
+  document.getElementById("modal-cliente").classList.remove("open");
+  clienteEditandoId = null;
+}
+
+function salvarCliente() {
+  const nome = document.getElementById("cli-nome").value.trim();
+  if (!nome) { toast("Nome é obrigatório", "#c0253d"); return; }
+
+  const cliente = {
+    id: clienteEditandoId || Date.now(),
+    nome: nome,
+    telefone: document.getElementById("cli-telefone").value.trim(),
+    empresa: document.getElementById("cli-empresa").value.trim(),
+    instagram: document.getElementById("cli-instagram").value.trim(),
+    status: document.getElementById("cli-status").value,
+    obs: document.getElementById("cli-obs").value.trim(),
+    data: new Date().toLocaleDateString("pt-BR")
+  };
+
+  const lista = getClientes();
+  if (clienteEditandoId) {
+    const idx = lista.findIndex(c => c.id === clienteEditandoId);
+    if (idx >= 0) lista[idx] = { ...lista[idx], ...cliente };
+  } else {
+    lista.unshift(cliente);
+  }
+
+  saveClientes(lista);
+  renderClientes();
+  fecharModalCliente();
+  toast(clienteEditandoId ? "Cliente atualizado!" : "Cliente salvo!");
+}
+
+function editarCliente(id) {
+  const lista = getClientes();
+  const c = lista.find(x => x.id === id);
+  if (c) abrirModalCliente(c);
+}
+
+function excluirCliente(id) {
+  if (!confirm("Excluir este cliente?")) return;
+  const lista = getClientes().filter(c => c.id !== id);
+  saveClientes(lista);
+  if (clienteSelecionado && clienteSelecionado.id === id) {
+    clienteSelecionado = null;
+    renderDetail();
+  }
+  renderClientes();
+  toast("Cliente excluído", "#c0253d");
+}
+
+function selectCliente(c) {
+  clienteSelecionado = c;
+  renderClientes();
+  renderDetail();
+}
+
+function renderDetail() {
+  const panel = document.getElementById("detail-panel");
+  if (!clienteSelecionado) {
+    panel.classList.remove("open");
+    panel.innerHTML = `<div class="empty-detail"><span></span>Selecione um cliente para ver os detalhes</div>`;
+    return;
+  }
+
+  const c = clienteSelecionado;
+  const status = getStatusCliente(c);
+  const orcs = getOrcamentosCliente(c.nome);
+  const fins = getFinanceiroCliente(c.nome);
+
+  const orcAprovados = orcs.filter(o => o.status === "aprovada" || o.status === "pago");
+  const orcEnviados = orcs.filter(o => o.status === "enviada");
+  const totalRecebido = fins.filter(f => f.tipo === "entrada").reduce((sum, f) => sum + parseFloat(f.valor || 0), 0);
+  const totalPendente = fins.filter(f => f.tipo === "entrada" && f.status === "pendente").reduce((sum, f) => sum + parseFloat(f.valor || 0), 0);
+
+  const telLink = c.telefone ? c.telefone.replace(/\D/g, "") : "";
+  const whatsAppLink = telLink ? `https://wa.me/55${telLink}` : "#";
+
+  panel.classList.add("open");
+  panel.innerHTML = `
+    <div class="detail-header">
+      <div class="detail-avatar">${getInitials(c.nome)}</div>
+      <div class="detail-info">
+        <div class="detail-name">${esc(c.nome)}</div>
+        ${c.empresa ? `<div class="detail-company">${esc(c.empresa)}</div>` : ""}
+        <span class="client-status status-${status}">${getStatusLabel(status)}</span>
+        <div class="detail-actions">
+          ${c.telefone ? `<a href="${whatsAppLink}" target="_blank" class="detail-btn btn-whatsapp">WhatsApp</a>` : ""}
+          <a href="index.html?cliente=${encodeURIComponent(c.nome)}" class="detail-btn btn-orcamento">Novo Orçamento</a>
+          <button onclick="editarCliente(${c.id})" class="detail-btn btn-editar">Editar</button>
+          <button onclick="excluirCliente(${c.id})" class="detail-btn btn-editar" style="color:var(--r3)">Excluir</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">Contatos</div>
+      <div class="detail-row">
+        ${c.telefone ? `<div class="detail-field"><label>Telefone</label><span>${esc(c.telefone)}</span></div>` : ""}
+        ${c.instagram ? `<div class="detail-field"><label>Instagram</label><span>${esc(c.instagram)}</span></div>` : ""}
+        ${c.empresa ? `<div class="detail-field"><label>Empresa</label><span>${esc(c.empresa)}</span></div>` : ""}
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">Financeiro</div>
+      <div class="finance-grid">
+        <div class="finance-card">
+          <label>Total Recebido</label>
+          <span class="val-green">${formatMoney(totalRecebido)}</span>
+        </div>
+        <div class="finance-card">
+          <label>Pendente</label>
+          <span class="val-yellow">${formatMoney(totalPendente)}</span>
+        </div>
+        <div class="finance-card">
+          <label>Orçamentos</label>
+          <span class="val-green">${orcAprovados.length}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">Histórico de Orçamentos</div>
+      ${orcs.length ? orcs.slice(0, 5).map(o => `
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-date">${o.data || "?"}</div>
+          <div class="timeline-text">
+            ${esc(o.cliente)} - ${formatMoney(o.total || 0)} 
+            <span style="color:var(--${o.status === 'aprovada' ? 'g3' : o.status === 'pago' ? 'g3' : o.status === 'recusada' ? 'r3' : 'y3'})">[${o.status || 'rascunho'}]</span>
+          </div>
+        </div>
+      `).join("") : "<div style='color:var(--tx3);font-size:.8rem'>Nenhum orçamento</div>"}
+    </div>
+
+    ${c.obs ? `
+    <div class="detail-section">
+      <div class="detail-section-title">Observações</div>
+      <div style="font-size:.85rem;color:var(--tx2);line-height:1.5">${esc(c.obs)}</div>
+    </div>
+    ` : ""}
+  `;
+}
+
+function renderClientes() {
+  const busca = document.getElementById("busca").value.toLowerCase();
+  let lista = getClientes();
+
+  if (busca) {
+    lista = lista.filter(c =>
+      (c.nome || "").toLowerCase().includes(busca) ||
+      (c.empresa || "").toLowerCase().includes(busca) ||
+      (c.telefone || "").includes(busca) ||
+      (c.instagram || "").toLowerCase().includes(busca)
+    );
+  }
+
+  const stats = { total: 0, ativo: 0, pendente: 0, projeto: 0 };
+  lista.forEach(c => {
+    const s = getStatusCliente(c);
+    stats.total++;
+    if (s === "ativo") stats.ativo++;
+    else if (s === "pendente") stats.pendente++;
+    else if (s === "projeto") stats.projeto++;
+  });
+
+  document.getElementById("stat-total").textContent = stats.total;
+  document.getElementById("stat-ativos").textContent = stats.ativo;
+  document.getElementById("stat-pendentes").textContent = stats.pendente;
+  document.getElementById("stat-projetos").textContent = stats.projeto;
+
+  let filtered = lista;
+  if (filterAtual !== "todos") {
+    filtered = lista.filter(c => getStatusCliente(c) === filterAtual);
+  }
+
+  const wrap = document.getElementById("clients-list");
+
+  if (!filtered.length) {
+    wrap.innerHTML = `<div class="empty-list"><span></span>Nenhum cliente encontrado</div>`;
+    return;
+  }
+
+  wrap.innerHTML = filtered.map(c => {
+    const status = getStatusCliente(c);
+    const orcs = getOrcamentosCliente(c.nome);
+    const orcAtivos = orcs.filter(o => o.status === "aprovada" || o.status === "pago").length;
+
+    return `
+      <div class="client-card ${clienteSelecionado && clienteSelecionado.id === c.id ? 'selecionado' : ''}" onclick="selectCliente(${c.id})">
+        <div class="client-header">
+          <div class="client-avatar">${getInitials(c.nome)}</div>
+          <div class="client-info">
+            <div class="client-name">${esc(c.nome)}</div>
+            ${c.empresa ? `<div class="client-company">${esc(c.empresa)}</div>` : ""}
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span class="client-status status-${status}">${getStatusLabel(status)}</span>
+        </div>
+        <div class="client-meta">
+          ${c.telefone ? `<span>${esc(c.telefone)}</span>` : ""}
+          ${c.instagram ? `<span>${esc(c.instagram)}</span>` : ""}
+          ${orcAtivos ? `<span>${orcAtivos} projeto${orcAtivos > 1 ? 's' : ''}</span>` : ""}
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+renderClientes();
+</script>
+
+</body>
+</html>

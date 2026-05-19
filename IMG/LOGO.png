@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <rect width="400" height="400" rx="48" fill="#0b0b0f"/>
+  <rect x="32" y="32" width="336" height="336" rx="32" fill="#16a04b"/>
+  <text x="200" y="255" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="200" fill="#fff" text-anchor="middle">MM</text>
+  <text x="200" y="310" font-family="Arial,Helvetica,sans-serif" font-weight="600" font-size="40" fill="#1dd668" text-anchor="middle" letter-spacing="6">ORÇAMENTOS</text>
+</svg>

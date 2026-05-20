@@ -9,6 +9,7 @@ const KEYS = {
   CONTADOR: "orc_contador_v1",
   DESPESAS: "despesas_miguel",
   FIXOS: "clientes_fixos_miguel",
+  PLANOS_FIXOS: "planos_fixos_miguel",
 };
 
 function get(key, fallback) {
@@ -138,3 +139,11 @@ export const saveFixo = (item) => {
   set(KEYS.FIXOS, lista);
 };
 export const deleteFixo = (id) => set(KEYS.FIXOS, getFixos().filter(f => f.id !== id));
+
+const PLANOS_PADRAO = {
+  basico: { nome: "Basico", valor: 600, cor: "#448aff", bg: "#448aff15", entregas: ["8 posts para redes sociais", "1 arte estatica", "Agendamento semanal"] },
+  padrao: { nome: "Padrao", valor: 1200, cor: "#7c3aed", bg: "#7c3aed15", entregas: ["12 posts para redes sociais", "2 artes estaticas", "1 Reels curto", "Agendamento", "Relatorio mensal"] },
+  premium: { nome: "Premium", valor: 2000, cor: "#ffb800", bg: "#ffb80015", entregas: ["20 posts para redes sociais", "4 artes estaticas", "2 Reels", "1 Video institucional", "Agendamento", "Relatorio semanal", "Suporte prioritario"] },
+};
+export const getPlanosFixos = () => get(KEYS.PLANOS_FIXOS, PLANOS_PADRAO);
+export const savePlanosFixos = (planos) => set(KEYS.PLANOS_FIXOS, planos);

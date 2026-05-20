@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star, Plus, X, Check, Clock, Edit3, DollarSign, FileText, Calendar, Trash2, CheckCircle } from "lucide-react";
-import { getFixos, saveFixo, deleteFixo } from "../utils/storage";
+import { getFixos, saveFixo, deleteFixo, getPlanosFixos, savePlanosFixos } from "../utils/storage";
 
-const PLANOS = {
+const PLANOS_PADRAO = {
   basico: { nome: "Basico", valor: 600, cor: "#448aff", bg: "#448aff15", entregas: ["8 posts para redes sociais", "1 arte estatica", "Agendamento semanal"] },
   padrao: { nome: "Padrao", valor: 1200, cor: "#7c3aed", bg: "#7c3aed15", entregas: ["12 posts para redes sociais", "2 artes estaticas", "1 Reels curto", "Agendamento", "Relatorio mensal"] },
   premium: { nome: "Premium", valor: 2000, cor: "#ffb800", bg: "#ffb80015", entregas: ["20 posts para redes sociais", "4 artes estaticas", "2 Reels", "1 Video institucional", "Agendamento", "Relatorio semanal", "Suporte prioritario"] },
@@ -22,11 +22,14 @@ export default function FixedClients() {
   const [clientes, setClientes] = useState(() => getFixos());
   const [selected, setSelected] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showPlanos, setShowPlanos] = useState(false);
+  const [planos, setPlanos] = useState(() => getPlanosFixos());
 
   const refresh = useCallback(() => {
     const novos = getFixos();
     setClientes(novos);
     setSelected(s => s ? novos.find(c => c.id === s.id) || s : null);
+    setPlanos(getPlanosFixos());
   }, []);
 
   const activeClients = clientes.filter(c => c.ativo !== false);
@@ -35,15 +38,21 @@ export default function FixedClients() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <p className="text-xs text-text-muted">{activeClients.length} cliente{activeClients.length !== 1 ? "s" : ""} fixo{activeClients.length !== 1 ? "s" : ""}</p>
-        <motion.button onClick={() => setShowModal(true)} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold uppercase tracking-[0.08em] bg-amber text-black hover:bg-amber/80 transition-colors">
-          <Plus size={15} /> Novo Cliente Fixo
-        </motion.button>
+        <div className="flex items-center gap-2">
+          <motion.button onClick={() => setShowPlanos(true)} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-[0.08em] bg-bg-elevated border border-border-card text-text-secondary hover:text-text transition-colors">
+            <Edit3 size={13} /> Planos
+          </motion.button>
+          <motion.button onClick={() => setShowModal(true)} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold uppercase tracking-[0.08em] bg-amber text-black hover:bg-amber/80 transition-colors">
+            <Plus size={15} /> Novo Cliente Fixo
+          </motion.button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {activeClients.map(c => {
-          const plan = PLANOS[c.plano] || PLANOS.basico;
+          const plan = planos[c.plano] || planos.basico;
           const now = new Date();
           const mk = mesKey(now);
           const fin = (c.historicoFinanceiro || []).find(h => h.mes === mk);
@@ -86,13 +95,14 @@ export default function FixedClients() {
         )}
       </div>
 
-      <ClienteFixoPanel cliente={selected} onClose={() => setSelected(null)} onUpdate={refresh} />
-      <NovoFixoModal show={showModal} onClose={() => setShowModal(false)} onCreated={refresh} />
+      <ClienteFixoPanel cliente={selected} onClose={() => setSelected(null)} onUpdate={refresh} planos={planos} />
+      <NovoFixoModal show={showModal} onClose={() => setShowModal(false)} onCreated={refresh} planos={planos} />
+      <PlanosModal show={showPlanos} onClose={() => setShowPlanos(false)} onUpdate={refresh} planos={planos} />
     </div>
   );
 }
 
-function ClienteFixoPanel({ cliente, onClose, onUpdate }) {
+function ClienteFixoPanel({ cliente, onClose, onUpdate, planos }) {
   const [tab, setTab] = useState("plano");
   const [saved, setSaved] = useState(false);
   const timer = useRef(null);
@@ -155,10 +165,10 @@ function ClienteFixoPanel({ cliente, onClose, onUpdate }) {
               ))}
             </div>
             <div className="flex-1 overflow-auto p-5">
-              {tab === "plano" && <PlanoTab cliente={cliente} updateCliente={updateCliente} />}
+              {tab === "plano" && <PlanoTab cliente={cliente} updateCliente={updateCliente} planos={planos} />}
               {tab === "entregas" && <EntregasTab cliente={cliente} updateCliente={updateCliente} />}
               {tab === "anotacoes" && <AnotacoesTab cliente={cliente} updateCliente={updateCliente} />}
-              {tab === "financeiro" && <FinTab cliente={cliente} updateCliente={updateCliente} />}
+              {tab === "financeiro" && <FinTab cliente={cliente} updateCliente={updateCliente} planos={planos} />}
             </div>
           </motion.div>
         </motion.div>
@@ -167,17 +177,17 @@ function ClienteFixoPanel({ cliente, onClose, onUpdate }) {
   );
 }
 
-function PlanoTab({ cliente, updateCliente }) {
+function PlanoTab({ cliente, updateCliente, planos }) {
   const [plano, setPlano] = useState(cliente.plano || "basico");
-  const [valor, setValor] = useState(cliente.valorMensal || PLANOS[cliente.plano]?.valor || 600);
-  const [entregas, setEntregas] = useState(cliente.entregasPersonalizadas || PLANOS[plano]?.entregas || []);
+  const [valor, setValor] = useState(cliente.valorMensal || planos[cliente.plano]?.valor || 600);
+  const [entregas, setEntregas] = useState(cliente.entregasPersonalizadas || planos[plano]?.entregas || []);
   const [inicio, setInicio] = useState(cliente.dataInicio || hojeISO());
   const [vencimento, setVencimento] = useState(cliente.diaVencimento || 5);
 
   const selectPlano = (key) => {
     setPlano(key);
-    if (!cliente.entregasPersonalizadas) setEntregas(PLANOS[key].entregas);
-    setValor(PLANOS[key].valor);
+    if (!cliente.entregasPersonalizadas) setEntregas(planos[key].entregas);
+    setValor(planos[key].valor);
   };
 
   const handleSave = () => {
@@ -187,7 +197,7 @@ function PlanoTab({ cliente, updateCliente }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-3">
-        {Object.entries(PLANOS).map(([key, p]) => (
+        {Object.entries(planos).map(([key, p]) => (
           <button key={key} onClick={() => selectPlano(key)}
             className={`p-4 rounded-xl border-2 text-left transition-all ${plano === key ? "border-amber bg-amber/10" : "border-border-card bg-bg-elevated hover:border-border-light"}`}>
             <p className="text-sm font-bold text-text">{p.nome}</p>
@@ -326,14 +336,9 @@ function AnotacoesTab({ cliente, updateCliente }) {
   );
 }
 
-function FinTab({ cliente, updateCliente }) {
+function FinTab({ cliente, updateCliente, planos }) {
   const historico = cliente.historicoFinanceiro || [];
   const totalRecebido = historico.filter(h => h.status === "pago").reduce((s, h) => s + (h.valor || 0), 0);
-
-  const marcarPago = (mes) => {
-    const novos = historico.map(h => h.mes === mes ? { ...h, status: "pago", dataPagamento: hojeISO() } : h);
-    updateCliente({ historicoFinanceiro: novos });
-  };
 
   const gerarMes = () => {
     const now = new Date();
@@ -390,11 +395,11 @@ function FinTab({ cliente, updateCliente }) {
   );
 }
 
-function NovoFixoModal({ show, onClose, onCreated }) {
+function NovoFixoModal({ show, onClose, onCreated, planos }) {
   const [nome, setNome] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [plano, setPlano] = useState("basico");
-  const [valor, setValor] = useState(PLANOS.basico.valor);
+  const [valor, setValor] = useState(planos.basico.valor);
   const [vencimento, setVencimento] = useState(5);
 
   const handleSave = () => {
@@ -415,7 +420,7 @@ function NovoFixoModal({ show, onClose, onCreated }) {
     saveFixo(obj);
     onCreated();
     onClose();
-    setNome(""); setWhatsapp(""); setPlano("basico"); setValor(PLANOS.basico.valor);
+    setNome(""); setWhatsapp(""); setPlano("basico"); setValor(planos.basico.valor);
   };
 
   if (!show) return null;
@@ -436,7 +441,7 @@ function NovoFixoModal({ show, onClose, onCreated }) {
             <input type="text" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="(99) 99999-0000" className="w-full bg-bg-elevated border border-border-card rounded-lg px-3.5 py-2.5 text-sm text-text placeholder-text-muted outline-none focus:border-amber/50" />
           </div>
           <div className="grid grid-cols-3 gap-2">
-            {Object.entries(PLANOS).map(([key, p]) => (
+            {Object.entries(planos).map(([key, p]) => (
               <button key={key} onClick={() => { setPlano(key); setValor(p.valor); }}
                 className={`p-3 rounded-xl border text-center transition-all ${plano === key ? "border-amber bg-amber/10" : "border-border-card bg-bg-elevated"}`}>
                 <p className="text-xs font-bold text-text">{p.nome}</p>
@@ -458,6 +463,74 @@ function NovoFixoModal({ show, onClose, onCreated }) {
             <button onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-border-card text-text-secondary hover:text-text text-sm">Cancelar</button>
             <button onClick={handleSave} className="flex-1 py-2.5 rounded-lg bg-amber text-black hover:bg-amber/80 text-sm font-semibold">Salvar</button>
           </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function PlanosModal({ show, onClose, onUpdate, planos }) {
+  const [edit, setEdit] = useState(() => JSON.parse(JSON.stringify(planos)));
+
+  useEffect(() => { setEdit(JSON.parse(JSON.stringify(planos))); }, [planos]);
+
+  const handleSave = () => {
+    savePlanosFixos(edit);
+    onUpdate();
+    onClose();
+  };
+
+  if (!show) return null;
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} className="bg-bg-card rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between p-5 border-b border-border-card flex-shrink-0">
+          <h2 className="text-lg font-display font-bold text-text">Gerenciar Planos</h2>
+          <button onClick={onClose} className="text-text-muted hover:text-text p-1"><X size={18} /></button>
+        </div>
+        <div className="flex-1 overflow-auto p-5 space-y-4">
+          {Object.entries(edit).map(([key, p]) => (
+            <div key={key} className="bg-bg-elevated rounded-xl p-5 border border-border-card">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: p.cor }} />
+                <input type="text" value={p.nome} onChange={(e) => setEdit(e => ({ ...e, [key]: { ...e[key], nome: e.target.value } }))}
+                  className="bg-transparent border-b border-border-card text-lg font-display font-bold text-text outline-none focus:border-amber/50 px-1 py-0.5" />
+              </div>
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="text-[10px] uppercase tracking-[0.1em] text-text-muted font-medium block mb-1">Valor (R$)</label>
+                  <input type="number" value={p.valor} onChange={(e) => setEdit(e => ({ ...e, [key]: { ...e[key], valor: +e.target.value } }))}
+                    className="w-full bg-bg-input border border-border-card rounded-lg px-3 py-2 text-sm text-text outline-none focus:border-amber/50" />
+                </div>
+                <div>
+                  <label className="text-[10px] uppercase tracking-[0.1em] text-text-muted font-medium block mb-1">Cor</label>
+                  <input type="color" value={p.cor} onChange={(e) => setEdit(e => ({ ...e, [key]: { ...e[key], cor: e.target.value } }))}
+                    className="w-full h-9 bg-bg-input border border-border-card rounded-lg cursor-pointer" />
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] uppercase tracking-[0.1em] text-text-muted font-medium block mb-2">Entregas</label>
+                <div className="space-y-1.5">
+                  {p.entregas.map((e, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <input type="text" value={e} onChange={(v) => setEdit(prev => {
+                        const c = [...prev[key].entregas]; c[i] = v.target.value;
+                        return { ...prev, [key]: { ...prev[key], entregas: c } };
+                      })} className="flex-1 bg-bg-input border border-border-card rounded-lg px-3 py-1.5 text-xs text-text outline-none focus:border-amber/50" />
+                      <button onClick={() => setEdit(prev => ({ ...prev, [key]: { ...prev[key], entregas: prev[key].entregas.filter((_, j) => j !== i) } }))}
+                        className="text-text-muted hover:text-danger p-1"><X size={13} /></button>
+                    </div>
+                  ))}
+                  <button onClick={() => setEdit(prev => ({ ...prev, [key]: { ...prev[key], entregas: [...prev[key].entregas, ""] } }))}
+                    className="text-xs text-amber hover:underline">+ Adicionar entrega</button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-3 p-5 border-t border-border-card flex-shrink-0">
+          <button onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-border-card text-text-secondary hover:text-text text-sm">Cancelar</button>
+          <button onClick={handleSave} className="flex-1 py-2.5 rounded-lg bg-amber text-black hover:bg-amber/80 text-sm font-semibold">Salvar Planos</button>
         </div>
       </motion.div>
     </motion.div>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, Plus, X, Check, Clock, Edit3, DollarSign, FileText, Calendar, Trash2 } from "lucide-react";
+import { Star, Plus, X, Check, Clock, Edit3, DollarSign, FileText, Calendar, Trash2, CheckCircle } from "lucide-react";
 import { getFixos, saveFixo, deleteFixo } from "../utils/storage";
 
 const PLANOS = {
@@ -141,7 +141,7 @@ function ClienteFixoPanel({ cliente, onClose, onUpdate }) {
                 <button onClick={onClose} className="text-text-muted hover:text-text p-1"><X size={18} /></button>
               </div>
             </div>
-            <div className="flex gap-1 px-5 pt-4 border-b border-border-card flex-shrink-0">
+            <div className="flex gap-1 px-5 pt-4 border-b border-border-card flex-shrink-0 overflow-x-auto">
               {[
                 { key: "plano", label: "Plano", icon: Star },
                 { key: "entregas", label: "Entregas", icon: FileText },
@@ -343,21 +343,21 @@ function FinTab({ cliente, updateCliente }) {
     updateCliente({ historicoFinanceiro: novos });
   };
 
-  useEffect(() => { if (!historico.some(h => h.mes === mesKey(new Date()))) gerarMes(); }, []);
+  useEffect(() => { if (!historico.some(h => h.mes === mesKey(new Date()))) gerarMes(); }, [historico, updateCliente]);
 
   return (
     <div className="space-y-3">
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-text-muted text-[10px] uppercase tracking-[0.1em] border-b border-border-card">
-              <th className="text-left pb-2 font-medium">Competencia</th>
-              <th className="text-right pb-2 font-medium">Valor</th>
-              <th className="text-center pb-2 font-medium">Status</th>
-              <th className="text-right pb-2 font-medium">Pagamento</th>
-              <th className="text-center pb-2 font-medium"></th>
-            </tr>
-          </thead>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-text-muted text-[10px] uppercase tracking-[0.1em] border-b border-border-card">
+                <th className="text-left pb-2 font-medium">Competencia</th>
+                <th className="text-right pb-2 font-medium">Valor</th>
+                <th className="text-center pb-2 font-medium">Status</th>
+                <th className="text-right pb-2 font-medium">Pagamento</th>
+                <th className="text-center pb-2 font-medium">Acao</th>
+              </tr>
+            </thead>
           <tbody>
             {historico.sort((a, b) => b.mes.localeCompare(a.mes)).map(h => (
               <tr key={h.mes} className="border-b border-border-card/30">
@@ -368,10 +368,10 @@ function FinTab({ cliente, updateCliente }) {
                     {h.status === "pago" ? "Pago" : "Pendente"}
                   </span>
                 </td>
-                <td className="py-2.5 text-right text-xs text-text-muted">{h.dataPagamento || "—"}</td>
+                <td className="py-2.5 text-right text-xs text-text-muted">{h.status === "pago" ? h.dataPagamento : "—"}</td>
                 <td className="py-2.5 text-center">
                   {h.status !== "pago" && (
-                    <button onClick={() => marcarPago(h.mes)} className="text-[10px] text-success hover:underline font-semibold">Pago</button>
+                    <button onClick={() => marcarPago(h.mes)} className="text-success hover:text-success/70 transition-colors p-1" title="Marcar como pago"><CheckCircle size={15} /></button>
                   )}
                 </td>
               </tr>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, Plus, X, Check, Clock, Edit3, DollarSign, FileText, Calendar } from "lucide-react";
-import { getFixos, saveFixo } from "../utils/storage";
+import { Star, Plus, X, Check, Clock, Edit3, DollarSign, FileText, Calendar, Trash2 } from "lucide-react";
+import { getFixos, saveFixo, deleteFixo } from "../utils/storage";
 
 const PLANOS = {
   basico: { nome: "Basico", valor: 600, cor: "#448aff", bg: "#448aff15", entregas: ["8 posts para redes sociais", "1 arte estatica", "Agendamento semanal"] },
@@ -22,6 +22,12 @@ export default function FixedClients() {
   const [clientes, setClientes] = useState(() => getFixos());
   const [selected, setSelected] = useState(null);
   const [showModal, setShowModal] = useState(false);
+
+  const refresh = useCallback(() => {
+    const novos = getFixos();
+    setClientes(novos);
+    setSelected(s => s ? novos.find(c => c.id === s.id) || s : null);
+  }, []);
 
   const activeClients = clientes.filter(c => c.ativo !== false);
 
@@ -65,6 +71,8 @@ export default function FixedClients() {
                 </div>
                 <button onClick={(e) => { e.stopPropagation(); setSelected(selected?.id === c.id ? null : c); }}
                   className="text-xs text-amber hover:underline flex-shrink-0 mt-1">Detalhes</button>
+                <button onClick={(e) => { e.stopPropagation(); if (confirm(`Excluir ${c.nome}?`)) { deleteFixo(c.id); setSelected(s => s?.id === c.id ? null : s); refresh(); } }}
+                  className="text-xs text-danger hover:underline flex-shrink-0 mt-1"><Trash2 size={12} className="inline" /></button>
               </div>
             </motion.div>
           );
@@ -78,8 +86,8 @@ export default function FixedClients() {
         )}
       </div>
 
-      <ClienteFixoPanel cliente={selected} onClose={() => setSelected(null)} onUpdate={() => setClientes(getFixos())} />
-      <NovoFixoModal show={showModal} onClose={() => setShowModal(false)} onCreated={() => setClientes(getFixos())} />
+      <ClienteFixoPanel cliente={selected} onClose={() => setSelected(null)} onUpdate={refresh} />
+      <NovoFixoModal show={showModal} onClose={() => setShowModal(false)} onCreated={refresh} />
     </div>
   );
 }
@@ -128,6 +136,8 @@ function ClienteFixoPanel({ cliente, onClose, onUpdate }) {
               </div>
               <div className="flex items-center gap-2">
                 {saved && <span className="text-xs text-success font-semibold">Salvo</span>}
+                <button onClick={() => { if (confirm(`Excluir ${cliente.nome}?`)) { deleteFixo(cliente.id); onClose(); } }}
+                  className="text-text-muted hover:text-danger p-1"><Trash2 size={16} /></button>
                 <button onClick={onClose} className="text-text-muted hover:text-text p-1"><X size={18} /></button>
               </div>
             </div>

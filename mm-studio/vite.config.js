@@ -2,8 +2,10 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
+const base = process.env.GITHUB_PAGES ? '/projeto-v2/' : '/';
+
 export default defineConfig({
-  base: '/projeto-v2/',
+  base,
   build: {
     outDir: '../dist',
     emptyOutDir: true,

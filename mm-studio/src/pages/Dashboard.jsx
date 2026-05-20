@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { DollarSign, TrendingUp, PiggyBank, Users, Plus, ArrowUpRight, ArrowDownRight, FileText } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -44,6 +45,7 @@ function CustomTooltip({ active, payload, label }) {
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const today = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   const now = new Date();
   const curMonth = now.getMonth();
@@ -156,7 +158,7 @@ export default function Dashboard() {
             <h1 className="text-xl font-display font-bold text-text">Dashboard</h1>
             <p className="text-xs text-text-muted mt-0.5 capitalize">{today}</p>
           </div>
-          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm">
+          <motion.button onClick={() => navigate("/orcamento")} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm">
             <Plus size={18} /> Novo Orcamento
           </motion.button>
         </div>
@@ -241,7 +243,7 @@ export default function Dashboard() {
                 <p className="text-sm text-text-muted text-center py-8">Nenhum orcamento recente</p>
               )}
             </div>
-            <button className="w-full mt-4 text-xs text-primary hover:underline flex items-center justify-center gap-1 py-2">
+            <button onClick={() => navigate("/historico")} className="w-full mt-4 text-xs text-primary hover:underline flex items-center justify-center gap-1 py-2">
               <FileText size={14} /> Ver todos os orcamentos
             </button>
           </motion.div>

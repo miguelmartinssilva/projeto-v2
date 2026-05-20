@@ -34,6 +34,10 @@ export const saveHistorico = (item) => {
   }
   set(KEYS.HIST, hist);
 };
+export const deleteHistorico = (id) => {
+  const hist = getHistorico().filter(h => h.id !== id);
+  set(KEYS.HIST, hist);
+};
 
 export const getClientes = () => get(KEYS.CLIENTES, []);
 export const saveClientes = (lista) => set(KEYS.CLIENTES, lista);

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Plus, MessageCircle, Camera, X, FileText } from "lucide-react";
 import { getClientes, getHistorico } from "../utils/storage";
@@ -7,6 +8,7 @@ const statusColors = { ativo: "bg-success", pendente: "bg-pending", inativo: "bg
 const statusLabels = { ativo: "Ativo", pendente: "Pendente", inativo: "Inativo" };
 
 export default function Clients() {
+  const navigate = useNavigate();
   const [filter, setFilter] = useState("todos");
   const [selected, setSelected] = useState(null);
   const [search, setSearch] = useState("");
@@ -54,8 +56,8 @@ export default function Clients() {
             <p className="text-xs text-text-muted mb-1 tracking-wide">MM Studio <span className="mx-1.5 text-border-light">/</span> <span className="text-text-secondary font-medium">Clientes</span></p>
             <h1 className="text-xl font-display font-bold text-text">Clientes</h1>
           </div>
-          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm">
-            <Plus size={18} /> Novo Cliente
+          <motion.button onClick={() => navigate("/orcamento")} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm">
+            <Plus size={18} /> Novo Orcamento
           </motion.button>
         </div>
 
@@ -153,7 +155,7 @@ export default function Clients() {
                   {selected.instagram && (
                     <a href={`https://instagram.com/${selected.instagram.replace("@", "")}`} target="_blank" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-info/15 text-info hover:bg-info/25 transition-colors"><Camera size={13} /> Instagram</a>
                   )}
-                  <a href="#" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-bg-elevated border border-border-card text-text-secondary hover:text-text transition-colors"><FileText size={13} /> Novo Orcamento</a>
+                  <button onClick={() => navigate("/orcamento")} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-bg-elevated border border-border-card text-text-secondary hover:text-text transition-colors"><FileText size={13} /> Novo Orcamento</button>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 mb-5">

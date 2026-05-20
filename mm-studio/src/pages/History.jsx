@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
-import { Search, Filter, FileText, Download, Eye, ChevronDown, CheckCircle, Clock, XCircle } from "lucide-react";
-import { getHistorico } from "../utils/storage";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, Filter, FileText, Download, Eye, ChevronDown, CheckCircle, Clock, XCircle, Trash2, X } from "lucide-react";
+import { getHistorico, deleteHistorico } from "../utils/storage";
+import { jsPDF } from "jspdf";
 
 const STATUS_MAP = {
   aprovada: { label: "Aprovado", class: "status-aprovado", icon: CheckCircle },
@@ -24,14 +25,24 @@ function mapStatus(s) {
   return "rascunho";
 }
 
+function statusLabel(s) {
+  if (s === "aprovada" || s === "aprovado" || s === "pago") return "Aprovado";
+  if (s === "pendente" || s === "enviada") return "Pendente";
+  if (s === "recusada" || s === "perdida") return "Cancelado";
+  return "Rascunho";
+}
+
 export default function History() {
   const [tab, setTab] = useState("todos");
   const [search, setSearch] = useState("");
+  const [viewItem, setViewItem] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
-  const { proposals, totalCount } = useMemo(() => {
+  const { proposals, rawItems, totalCount } = useMemo(() => {
     const hist = getHistorico();
     const mapped = hist.map(h => ({
       id: h.numero || `#${h.id}`,
+      rawId: h.id,
       client: h.cliente || "(sem nome)",
       service: h.itens?.[0]?.desc || `${h.itens?.length || 0} itens`,
       value: (h.total || 0),
@@ -40,7 +51,7 @@ export default function History() {
       date: h.data || "",
       payment: h.status === "pago" ? "Pix" : null,
     }));
-    return { proposals: mapped, totalCount: mapped.length };
+    return { proposals: mapped, rawItems: hist, totalCount: mapped.length };
   }, []);
 
   const filtered = proposals.filter(p => {
@@ -50,6 +61,93 @@ export default function History() {
   });
 
   const totalValue = filtered.reduce((acc, p) => acc + p.value, 0);
+
+  const handleView = (p) => {
+    const raw = rawItems.find(r => (r.numero || `#${r.id}`) === p.id);
+    if (raw) setViewItem(raw);
+  };
+
+  const handleDownloadPDF = (p) => {
+    const raw = rawItems.find(r => (r.numero || `#${r.id}`) === p.id);
+    if (!raw) return;
+
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pw = pdf.internal.pageSize.getWidth();
+    const lm = 15, rm = pw - 15;
+    let y = 15;
+
+    const w = (text, opts = {}) => {
+      const { size = 10, bold = false, color = "#111", align = "left" } = opts;
+      pdf.setFont("helvetica", bold ? "bold" : "normal");
+      pdf.setFontSize(size);
+      if (color !== "#111") pdf.setTextColor(color);
+      if (align === "center") pdf.text(text, pw / 2, y, { align: "center" });
+      else if (align === "right") pdf.text(text, rm, y, { align: "right" });
+      else pdf.text(text, lm, y);
+      pdf.setTextColor("#111");
+      y += size * 0.45;
+    };
+    const l = (yp) => { pdf.setDrawColor(0, 230, 118); pdf.setLineWidth(0.5); pdf.line(lm, yp, rm, yp); };
+    const cp = () => { if (y > 270) { pdf.addPage(); y = 15; } };
+    const f = (v) => `R$ ${(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+
+    w("MM STUDIO", { size: 20, bold: true, color: "#00e676", align: "center" });
+    w(`Proposta ${raw.numero || ""}`, { size: 12, color: "#555", align: "center" });
+    y += 2; l(y); y += 6;
+    w("DADOS DO CLIENTE", { size: 9, bold: true, color: "#00e676" }); y += 2;
+    w(`Nome: ${raw.cliente || "---"}`);
+    if (raw.contato) w(`Contato: ${raw.contato}`);
+    w(`Tipo: ${raw.tipo || "---"}`);
+    y += 4; cp();
+
+    w("SERVICOS", { size: 9, bold: true, color: "#00e676" }); y += 2;
+    const colW = [80, 15, 25, 30];
+    const hdrs = ["Descricao", "Qtd", "Valor Un.", "Subtotal"];
+    pdf.setFont("helvetica", "bold"); pdf.setFontSize(8); pdf.setTextColor("#555");
+    let x = lm;
+    hdrs.forEach(h => { pdf.text(h, x, y); x += colW[hdrs.indexOf(h)]; });
+    y += 5; l(y - 2);
+    pdf.setFont("helvetica", "normal"); pdf.setFontSize(9); pdf.setTextColor("#333");
+    (raw.itens || []).forEach(i => {
+      cp(); x = lm;
+      pdf.text((i.desc || "").substring(0, 30), x, y); x += colW[0];
+      pdf.text(String(i.qtd || 0), x, y); x += colW[1];
+      pdf.text(f(i.unit || 0), x, y); x += colW[2];
+      pdf.text(f(i.sub || i.qtd * i.unit || 0), x, y);
+      y += 5;
+    });
+    y += 3; cp();
+    w(`Subtotal: ${f(raw.subtotal)}`, { align: "right" });
+    if (raw.tipoFator && raw.tipoFator !== 1) w(`Fator: x${raw.tipoFator.toFixed(2)}`, { align: "right" });
+    if (raw.descPct > 0) w(`Desconto: -${raw.descPct}%`, { align: "right", color: "#e53935" });
+    y += 2; l(y); y += 4; cp();
+    w(`TOTAL: ${f(raw.total)}`, { size: 14, bold: true, color: "#00e676", align: "right" });
+
+    if (raw.obs) {
+      y += 6; cp();
+      w("OBSERVACOES", { size: 9, bold: true, color: "#00e676" }); y += 2;
+      const lines = pdf.splitTextToSize(raw.obs, rm - lm);
+      lines.forEach(line => { cp(); pdf.text(line, lm, y); y += 4; });
+    }
+
+    y += 8; cp();
+    pdf.setFontSize(8); pdf.setTextColor("#777");
+    w(`Proposta ${raw.numero} - gerada em ${raw.data}`, { align: "center", size: 8, color: "#777" });
+
+    pdf.save(`proposta-${raw.numero || raw.id}.pdf`);
+  };
+
+  const handleDelete = (p) => {
+    setConfirmDelete(p);
+  };
+
+  const confirmDeleteAction = () => {
+    if (!confirmDelete) return;
+    const raw = rawItems.find(r => (r.numero || `#${r.id}`) === confirmDelete.id);
+    if (raw) deleteHistorico(raw.id);
+    setConfirmDelete(null);
+    window.location.reload();
+  };
 
   return (
     <div className="flex-1 min-h-screen page-enter">
@@ -131,8 +229,9 @@ export default function History() {
                       <td className="px-4 py-3.5 text-right text-text-muted text-xs">{p.date}</td>
                       <td className="px-4 py-3.5 text-center">
                         <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button className="p-1.5 rounded-lg hover:bg-white/5 text-text-muted hover:text-text transition-colors"><Eye size={14} /></button>
-                          <button className="p-1.5 rounded-lg hover:bg-white/5 text-text-muted hover:text-primary transition-colors"><Download size={14} /></button>
+                          <button onClick={() => handleView(p)} className="p-1.5 rounded-lg hover:bg-white/5 text-text-muted hover:text-text transition-colors" title="Visualizar"><Eye size={14} /></button>
+                          <button onClick={() => handleDownloadPDF(p)} className="p-1.5 rounded-lg hover:bg-white/5 text-text-muted hover:text-primary transition-colors" title="Baixar PDF"><Download size={14} /></button>
+                          <button onClick={() => handleDelete(p)} className="p-1.5 rounded-lg hover:bg-white/5 text-text-muted hover:text-danger transition-colors" title="Excluir"><Trash2 size={14} /></button>
                         </div>
                       </td>
                     </tr>
@@ -156,6 +255,68 @@ export default function History() {
           </div>
         </motion.div>
       </div>
+
+      <AnimatePresence>
+        {viewItem && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={() => setViewItem(null)}>
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-bg-card rounded-2xl max-w-lg w-full max-h-[80vh] overflow-auto p-6" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-display font-bold text-text">{viewItem.numero || "Orcamento"}</h2>
+                <button onClick={() => setViewItem(null)} className="text-text-muted hover:text-text p-1"><X size={18} /></button>
+              </div>
+              <div className="space-y-3 text-sm">
+                <div className="bg-bg-elevated rounded-lg p-3 border border-border-card">
+                  <p className="text-[10px] uppercase tracking-[0.1em] text-text-muted mb-2">Cliente</p>
+                  <p className="text-text font-medium">{viewItem.cliente || "---"}</p>
+                  {viewItem.contato && <p className="text-xs text-text-muted">{viewItem.contato}</p>}
+                  {viewItem.tipo && <p className="text-xs text-text-muted">{viewItem.tipo}</p>}
+                </div>
+                <div className="bg-bg-elevated rounded-lg p-3 border border-border-card">
+                  <p className="text-[10px] uppercase tracking-[0.1em] text-text-muted mb-2">Status</p>
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold uppercase tracking-[0.08em] ${STATUS_MAP[viewItem.status === "aprovado" ? "aprovada" : viewItem.status === "cancelado" ? "recusada" : viewItem.status]?.class || "status-rascunho"}`}>
+                    {statusLabel(viewItem.status)}
+                  </span>
+                </div>
+                <div className="bg-bg-elevated rounded-lg p-3 border border-border-card">
+                  <p className="text-[10px] uppercase tracking-[0.1em] text-text-muted mb-2">Itens</p>
+                  {(viewItem.itens || []).map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between py-1.5 border-b border-border-card/30 last:border-0">
+                      <span className="text-text text-xs">{item.desc} <span className="text-text-muted">x{item.qtd}</span></span>
+                      <span className="text-text font-medium text-xs">R$ {(item.sub || item.qtd * item.unit || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t border-border-card">
+                  <span className="text-text font-semibold">Total</span>
+                  <span className="text-primary font-display text-xl font-bold">R$ {(viewItem.total || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                </div>
+                {viewItem.obs && (
+                  <div className="bg-bg-elevated rounded-lg p-3 border border-border-card">
+                    <p className="text-[10px] uppercase tracking-[0.1em] text-text-muted mb-1">Observacoes</p>
+                    <p className="text-xs text-text whitespace-pre-wrap">{viewItem.obs}</p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {confirmDelete && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-bg-card rounded-2xl max-w-sm w-full p-6 text-center">
+              <Trash2 size={36} className="text-danger mx-auto mb-3" />
+              <h2 className="text-lg font-display font-bold text-text mb-2">Excluir Orcamento?</h2>
+              <p className="text-sm text-text-muted mb-5">Esta acao nao pode ser desfeita.</p>
+              <div className="flex gap-3">
+                <button onClick={() => setConfirmDelete(null)} className="flex-1 py-2.5 rounded-lg border border-border-card text-text-secondary hover:text-text transition-colors text-sm">Cancelar</button>
+                <button onClick={confirmDeleteAction} className="flex-1 py-2.5 rounded-lg bg-danger text-white hover:bg-danger/80 transition-colors text-sm font-semibold">Excluir</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

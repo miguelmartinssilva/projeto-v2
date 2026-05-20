@@ -1,36 +1,11 @@
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { DollarSign, TrendingDown, PiggyBank, Clock, ArrowUpRight, ArrowDownRight, Check } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { getTransactions } from "../utils/storage";
 
-const topCards = [
-  { label: "Receita Total", value: "R$ 47.200", change: 12.5, icon: DollarSign, borderClass: "border-top-green", color: "#00e676", up: true },
-  { label: "Despesas", value: "R$ 14.500", change: 8.3, icon: TrendingDown, borderClass: "border-top-red", color: "#ff4d6d", up: false },
-  { label: "Lucro Liquido", value: "R$ 32.700", change: 15.2, icon: PiggyBank, borderClass: "border-top-purple", color: "#7c3aed", up: true },
-  { label: "Pendentes", value: "R$ 4.400", change: 3.1, icon: Clock, borderClass: "border-top-orange", color: "#ff6b35", up: false },
-];
-
-const chartData = [
-  { mes: "Dez", receita: 5200, despesa: 1800 },
-  { mes: "Jan", receita: 6800, despesa: 2100 },
-  { mes: "Fev", receita: 4500, despesa: 1600 },
-  { mes: "Mar", receita: 7200, despesa: 2400 },
-  { mes: "Abr", receita: 8100, despesa: 1900 },
-  { mes: "Mai", receita: 6400, despesa: 2200 },
-  { mes: "Jun", receita: 9200, despesa: 2500 },
-];
-
-const pendings = [
-  { client: "Dra. Patricia", avatar: "DP", service: "Site Institucional", value: "R$ 3.600", date: "08/05/2026", overdue: false },
-  { client: "Festa Junina", avatar: "FJ", service: "Cobertura Evento", value: "R$ 800", date: "05/05/2026", overdue: true },
-];
-
-const pieData = [
-  { name: "Identidade Visual", value: 35, color: "#00e676" },
-  { name: "Social Media", value: 25, color: "#7c3aed" },
-  { name: "Site/Web", value: 20, color: "#448aff" },
-  { name: "Video", value: 12, color: "#ffb800" },
-  { name: "Eventos", value: 8, color: "#ff6b35" },
-];
+const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+const PIE_COLORS = ["#00e676","#7c3aed","#448aff","#ffb800","#ff6b35","#ff4d6d","#00bcd4","#69f0ae"];
 
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload) return null;
@@ -49,6 +24,84 @@ function CustomTooltip({ active, payload, label }) {
 }
 
 export default function Finance() {
+  const now = new Date();
+  const curMonth = now.getMonth();
+  const curYear = now.getFullYear();
+
+  const { topCards, chartData, pieData, pendings } = useMemo(() => {
+    const txns = getTransactions();
+
+    const totalEntradas = txns.filter(t => t.tipo === "entrada").reduce((s, t) => s + (t.valor || 0), 0);
+    const totalSaidas = txns.filter(t => t.tipo === "saida").reduce((s, t) => s + (t.valor || 0), 0);
+    const totalPendentes = txns.filter(t => t.status === "pendente").reduce((s, t) => s + (t.valor || 0), 0);
+    const lucro = totalEntradas - totalSaidas;
+
+    const lastMonthEntradas = txns.filter(t => {
+      const d = new Date(t.data + "T12:00:00");
+      const lm = curMonth === 0 ? 11 : curMonth - 1;
+      const ly = curMonth === 0 ? curYear - 1 : curYear;
+      return t.tipo === "entrada" && d.getMonth() === lm && d.getFullYear() === ly;
+    }).reduce((s, t) => s + (t.valor || 0), 0);
+
+    const lastMonthSaidas = txns.filter(t => {
+      const d = new Date(t.data + "T12:00:00");
+      const lm = curMonth === 0 ? 11 : curMonth - 1;
+      const ly = curMonth === 0 ? curYear - 1 : curYear;
+      return t.tipo === "saida" && d.getMonth() === lm && d.getFullYear() === ly;
+    }).reduce((s, t) => s + (t.valor || 0), 0);
+
+    const lastMonthPendentes = txns.filter(t => {
+      const d = new Date(t.data + "T12:00:00");
+      const lm = curMonth === 0 ? 11 : curMonth - 1;
+      const ly = curMonth === 0 ? curYear - 1 : curYear;
+      return t.status === "pendente" && d.getMonth() === lm && d.getFullYear() === ly;
+    }).reduce((s, t) => s + (t.valor || 0), 0);
+
+    const cards = [
+      { label: "Receita Total", value: `R$ ${totalEntradas.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, change: lastMonthEntradas ? Math.abs(Math.round((totalEntradas - lastMonthEntradas) / lastMonthEntradas * 100 * 10) / 10) : 0, icon: DollarSign, borderClass: "border-top-green", color: "#00e676", up: totalEntradas >= lastMonthEntradas },
+      { label: "Despesas", value: `R$ ${totalSaidas.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, change: lastMonthSaidas ? Math.abs(Math.round((totalSaidas - lastMonthSaidas) / lastMonthSaidas * 100 * 10) / 10) : 0, icon: TrendingDown, borderClass: "border-top-red", color: "#ff4d6d", up: false },
+      { label: "Lucro Liquido", value: `R$ ${lucro.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, change: 0, icon: PiggyBank, borderClass: "border-top-purple", color: "#7c3aed", up: true },
+      { label: "Pendentes", value: `R$ ${totalPendentes.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, change: lastMonthPendentes ? Math.abs(Math.round((totalPendentes - lastMonthPendentes) / lastMonthPendentes * 100 * 10) / 10) : 0, icon: Clock, borderClass: "border-top-orange", color: "#ff6b35", up: totalPendentes <= lastMonthPendentes },
+    ];
+
+    const chart = [];
+    for (let i = 6; i >= 0; i--) {
+      const m = (curMonth - i + 12) % 12;
+      const y = curMonth - i < 0 ? curYear - 1 : curYear;
+      const receita = txns.filter(t => { const d = new Date(t.data + "T12:00:00"); return d.getMonth() === m && d.getFullYear() === y && t.tipo === "entrada"; }).reduce((s, t) => s + (t.valor || 0), 0);
+      const despesa = txns.filter(t => { const d = new Date(t.data + "T12:00:00"); return d.getMonth() === m && d.getFullYear() === y && t.tipo === "saida"; }).reduce((s, t) => s + (t.valor || 0), 0);
+      chart.push({ mes: MESES[m], receita, despesa });
+    }
+
+    const catMap = {};
+    txns.filter(t => t.tipo === "entrada").forEach(t => {
+      const cat = t.categoria || "outros";
+      catMap[cat] = (catMap[cat] || 0) + (t.valor || 0);
+    });
+    const totalCat = Object.values(catMap).reduce((s, v) => s + v, 0) || 1;
+    const pie = Object.entries(catMap).map(([name, value], i) => ({
+      name: name.replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
+      value: Math.round(value / totalCat * 100),
+      color: PIE_COLORS[i % PIE_COLORS.length],
+    }));
+
+    const pends = txns.filter(t => t.status === "pendente").slice(0, 10).map(t => {
+      const initials = (t.cliente || "N/A").split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase();
+      const d = new Date(t.data + "T12:00:00");
+      const diff = Math.floor((now - d) / (1000 * 60 * 60 * 24));
+      return {
+        client: t.cliente || "N/A",
+        avatar: initials || "NA",
+        service: t.categoria || "",
+        value: `R$ ${(t.valor || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
+        date: t.data,
+        overdue: diff > 7,
+      };
+    });
+
+    return { topCards: cards, chartData: chart, pieData: pie, pendings: pends };
+  }, []);
+
   return (
     <div className="flex-1 min-h-screen page-enter">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -122,13 +175,14 @@ export default function Finance() {
                   <span className="text-text font-medium">{e.value}%</span>
                 </div>
               ))}
+              {pieData.length === 0 && <p className="text-xs text-text-muted text-center py-4">Nenhum dado disponivel</p>}
             </div>
           </motion.div>
         </div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-bg-card rounded-xl p-6 card-border glow-warning">
           <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-text mb-4 flex items-center gap-2"><Clock size={15} className="text-pending" /> Pendencias</h2>
-          {pendings.map((p, i) => (
+          {pendings.length > 0 ? pendings.map((p, i) => (
             <div key={i} className="flex items-center justify-between p-3.5 rounded-lg bg-bg-elevated border border-border-card/50 mb-2 last:mb-0 hover:bg-white/[0.03] transition-colors group">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-bg-card border border-border-card flex items-center justify-center text-xs font-bold text-primary">{p.avatar}</div>
@@ -143,7 +197,9 @@ export default function Finance() {
               </div>
               <button className="ml-3 p-2 rounded-lg bg-primary/10 text-primary opacity-0 group-hover:opacity-100 transition-all"><Check size={14} /></button>
             </div>
-          ))}
+          )) : (
+            <p className="text-sm text-text-muted text-center py-8">Nenhuma pendencia</p>
+          )}
         </motion.div>
       </div>
     </div>

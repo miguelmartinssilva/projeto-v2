@@ -1,30 +1,44 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Plus, MessageCircle, Camera, X, FileText } from "lucide-react";
-
-const clients = [
-  { id: 1, name: "Ana Souza", company: "Studio Criativo", phone: "(63) 99999-1111", instagram: "@anacriativa", status: "ativo", totalSpent: "R$ 4.800", proposals: 3, lastActivity: "2 dias atras" },
-  { id: 2, name: "Barbearia King", company: "Barbearia King Ltda", phone: "(63) 99999-2222", instagram: "@barbeariaking", status: "ativo", totalSpent: "R$ 2.400", proposals: 2, lastActivity: "5 dias atras" },
-  { id: 3, name: "Dra. Patricia", company: "Consultorio Odontologico", phone: "(63) 99999-3333", instagram: "@drapatricia", status: "pendente", totalSpent: "R$ 3.600", proposals: 1, lastActivity: "8 dias atras" },
-  { id: 4, name: "Festa Junina", company: "Eventos LTDA", phone: "(63) 99999-4444", instagram: "@festajunina", status: "pendente", totalSpent: "R$ 800", proposals: 1, lastActivity: "12 dias atras" },
-  { id: 5, name: "Academia Fit", company: "Academia Fit Plus", phone: "(63) 99999-5555", instagram: "@academiafit", status: "ativo", totalSpent: "R$ 3.000", proposals: 3, lastActivity: "15 dias atras" },
-  { id: 6, name: "Restaurante Sabor", company: "Restaurante Sabor & Arte", phone: "(63) 99999-6666", instagram: "@saborarte", status: "inativo", totalSpent: "R$ 4.800", proposals: 2, lastActivity: "30 dias atras" },
-];
+import { getClientes, getHistorico } from "../utils/storage";
 
 const statusColors = { ativo: "bg-success", pendente: "bg-pending", inativo: "bg-text-muted" };
 const statusLabels = { ativo: "Ativo", pendente: "Pendente", inativo: "Inativo" };
-const statusCounts = { todos: clients.length, ativo: clients.filter(c => c.status === "ativo").length, pendente: clients.filter(c => c.status === "pendente").length };
-
-const tabs = [
-  { key: "todos", label: "Todos", count: statusCounts.todos },
-  { key: "ativo", label: "Ativos", count: statusCounts.ativo },
-  { key: "pendente", label: "Pendentes", count: statusCounts.pendente },
-];
 
 export default function Clients() {
   const [filter, setFilter] = useState("todos");
   const [selected, setSelected] = useState(null);
   const [search, setSearch] = useState("");
+
+  const { clients, statusCounts, clientHistory } = useMemo(() => {
+    const raw = getClientes();
+    const hist = getHistorico();
+
+    const enriched = raw.map(c => {
+      const props = hist.filter(h => h.cliente && h.cliente.toLowerCase().includes((c.nome || "").toLowerCase()));
+      const total = props.reduce((s, h) => s + (h.total || 0), 0);
+      return {
+        id: c.id,
+        name: c.nome || "Sem nome",
+        company: c.empresa || "",
+        phone: c.telefone || "",
+        instagram: c.instagram || "",
+        status: c.status || "pendente",
+        totalSpent: `R$ ${total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
+        proposals: props.length,
+        lastActivity: c.data || "",
+      };
+    });
+
+    const counts = {
+      todos: enriched.length,
+      ativo: enriched.filter(c => c.status === "ativo").length,
+      pendente: enriched.filter(c => c.status === "pendente").length,
+    };
+
+    return { clients: enriched, statusCounts: counts, clientHistory: hist };
+  }, []);
 
   const filtered = clients.filter(c => {
     if (filter !== "todos" && c.status !== filter) return false;
@@ -46,21 +60,21 @@ export default function Clients() {
         </div>
 
         <div className="flex items-center gap-2 mb-6 flex-wrap">
-          {tabs.map((t) => (
+          {Object.entries(statusCounts).map(([key, count]) => (
             <button
-              key={t.key}
-              onClick={() => setFilter(t.key)}
-              className={`relative flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold uppercase tracking-[0.08em] transition-all ${filter === t.key ? "bg-primary text-black font-bold" : "bg-bg-card border border-border-card text-text-muted hover:text-text"}`}
+              key={key}
+              onClick={() => setFilter(key)}
+              className={`relative flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold uppercase tracking-[0.08em] transition-all ${filter === key ? "bg-primary text-black font-bold" : "bg-bg-card border border-border-card text-text-muted hover:text-text"}`}
             >
-              {t.label}
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${filter === t.key ? "bg-black/20 text-black/70" : "bg-bg-elevated text-text-muted"}`}>{t.count}</span>
+              {key === "todos" ? "Todos" : key === "ativo" ? "Ativos" : "Pendentes"}
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${filter === key ? "bg-black/20 text-black/70" : "bg-bg-elevated text-text-muted"}`}>{count}</span>
             </button>
           ))}
           <div className="relative ml-auto">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
             <input
               type="search"
-              placeholder="Buscar cliente... (Ctrl+K)"
+              placeholder="Buscar cliente..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="bg-bg-card border border-border-card rounded-lg pl-9 pr-3 py-2 text-sm text-text placeholder-text-muted outline-none focus:border-primary/50 transition-colors w-56"
@@ -132,9 +146,13 @@ export default function Clients() {
                   <button onClick={() => setSelected(null)} className="text-text-muted hover:text-text p-1 rounded hover:bg-white/5"><X size={16} /></button>
                 </div>
 
-                <div className="flex gap-2 mb-6">
-                  <a href={`https://wa.me/55${selected.phone.replace(/\D/g, "")}`} target="_blank" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-primary/15 text-primary hover:bg-primary/25 transition-colors"><MessageCircle size={13} /> WhatsApp</a>
-                  <a href={`https://instagram.com/${selected.instagram.replace("@", "")}`} target="_blank" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-info/15 text-info hover:bg-info/25 transition-colors"><Camera size={13} /> Instagram</a>
+                <div className="flex gap-2 mb-6 flex-wrap">
+                  {selected.phone && (
+                    <a href={`https://wa.me/55${selected.phone.replace(/\D/g, "")}`} target="_blank" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-primary/15 text-primary hover:bg-primary/25 transition-colors"><MessageCircle size={13} /> WhatsApp</a>
+                  )}
+                  {selected.instagram && (
+                    <a href={`https://instagram.com/${selected.instagram.replace("@", "")}`} target="_blank" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-info/15 text-info hover:bg-info/25 transition-colors"><Camera size={13} /> Instagram</a>
+                  )}
                   <a href="#" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-bg-elevated border border-border-card text-text-secondary hover:text-text transition-colors"><FileText size={13} /> Novo Orcamento</a>
                 </div>
 
@@ -151,18 +169,23 @@ export default function Clients() {
 
                 <div>
                   <h3 className="text-xs font-semibold uppercase tracking-[0.1em] text-text mb-3">Historico de Orcamentos</h3>
-                  {[1, 2].map((i) => (
-                    <div key={i} className="flex items-center justify-between py-2.5 border-b border-border-card/30 last:border-0">
-                      <div>
-                        <p className="text-sm text-text font-medium">Identidade Visual</p>
-                        <p className="text-xs text-text-muted">15/05/2026</p>
+                  {selected && (() => {
+                    const props = clientHistory.filter(h => h.cliente && h.cliente.toLowerCase().includes((selected.name || "").toLowerCase()));
+                    return props.length > 0 ? props.slice(0, 5).map((h, i) => (
+                      <div key={i} className="flex items-center justify-between py-2.5 border-b border-border-card/30 last:border-0">
+                        <div>
+                          <p className="text-sm text-text font-medium">{h.itens?.[0]?.desc || h.numero || "Orcamento"}</p>
+                          <p className="text-xs text-text-muted">{h.data}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-display font-bold text-text">R$ {(h.total || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                          <span className={`text-[10px] font-semibold ${h.status === "aprovada" || h.status === "aprovado" || h.status === "pago" ? "text-success" : h.status === "pendente" ? "text-pending" : "text-text-muted"}`}>
+                            {h.status === "aprovada" || h.status === "aprovado" ? "Aprovado" : h.status === "pago" ? "Pago" : h.status === "pendente" ? "Pendente" : h.status === "recusada" || h.status === "perdida" ? "Cancelado" : "Rascunho"}
+                          </span>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-display font-bold text-text">R$ 2.400</p>
-                        <span className="text-[10px] text-success font-semibold">Aprovado</span>
-                      </div>
-                    </div>
-                  ))}
+                    )) : <p className="text-sm text-text-muted text-center py-4">Nenhum orcamento encontrado</p>;
+                  })()}
                 </div>
               </motion.div>
             ) : (

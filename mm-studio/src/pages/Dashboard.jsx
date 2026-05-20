@@ -1,34 +1,31 @@
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { DollarSign, TrendingUp, PiggyBank, Users, Plus, ArrowUpRight, ArrowDownRight, FileText } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { getHistorico, getTransactions, getClientes } from "../utils/storage";
 
-const chartData = [
-  { mes: "Dez", receita: 5200, despesa: 1800 },
-  { mes: "Jan", receita: 6800, despesa: 2100 },
-  { mes: "Fev", receita: 4500, despesa: 1600 },
-  { mes: "Mar", receita: 7200, despesa: 2400 },
-  { mes: "Abr", receita: 8100, despesa: 1900 },
-  { mes: "Mai", receita: 6400, despesa: 2200 },
-  { mes: "Jun", receita: 9200, despesa: 2500 },
-];
+const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+const MONTH_NAMES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
-const metrics = [
-  { label: "Receita do Mes", value: "R$ 8.400", change: 12.5, icon: DollarSign, borderClass: "border-top-green", color: "#00e676", changeUp: true },
-  { label: "Despesas", value: "R$ 2.100", change: 4.2, icon: TrendingUp, borderClass: "border-top-orange", color: "#ff6b35", changeUp: false },
-  { label: "Lucro Liquido", value: "R$ 6.300", change: 18.3, icon: PiggyBank, borderClass: "border-top-purple", color: "#7c3aed", changeUp: true },
-  { label: "Clientes Ativos", value: "12", change: 8.0, icon: Users, borderClass: "border-top-yellow", color: "#ffb800", changeUp: true },
-];
+function parseDateBR(str) {
+  if (!str) return null;
+  const parts = str.split("/");
+  if (parts.length === 3) return new Date(+parts[2], +parts[1] - 1, +parts[0]);
+  return new Date(str + "T12:00:00");
+}
 
-const recentTransactions = [
-  { client: "Ana Souza", avatar: "AS", service: "Identidade Visual", value: "R$ 2.400", status: "pago", date: "2 dias atras" },
-  { client: "Barbearia King", avatar: "BK", service: "Social Media Mensal", value: "R$ 1.200", status: "pago", date: "5 dias atras" },
-  { client: "Dra. Patricia", avatar: "DP", service: "Site Institucional", value: "R$ 3.600", status: "pendente", date: "8 dias atras" },
-  { client: "Festa Junina", avatar: "FJ", service: "Cobertura Evento", value: "R$ 800", status: "pendente", date: "12 dias atras" },
-  { client: "Academia Fit", avatar: "AF", service: "Reels Mensal", value: "R$ 600", status: "aprovada", date: "15 dias atras" },
-];
-
-const statusClasses = { pago: "status-pago", pendente: "status-pendente", aprovada: "status-aprovada" };
-const statusLabels = { pago: "Pago", pendente: "Pendente", aprovada: "Aprovado" };
+function statusClass(s) {
+  if (s === "pago" || s === "aprovada" || s === "aprovado") return "status-pago";
+  if (s === "pendente") return "status-pendente";
+  if (s === "recusada" || s === "perdida") return "status-cancelado";
+  return "status-rascunho";
+}
+function statusLabel(s) {
+  if (s === "pago" || s === "aprovada" || s === "aprovado") return "Pago";
+  if (s === "pendente") return "Pendente";
+  if (s === "recusada" || s === "perdida") return "Cancelado";
+  return "Rascunho";
+}
 
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload) return null;
@@ -48,6 +45,107 @@ function CustomTooltip({ active, payload, label }) {
 
 export default function Dashboard() {
   const today = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const now = new Date();
+  const curMonth = now.getMonth();
+  const curYear = now.getFullYear();
+
+  const { metrics, chartData, recentProposals, recentTransactions } = useMemo(() => {
+    const hist = getHistorico();
+    const txns = getTransactions();
+    const clts = getClientes();
+
+    const monthRevenue = hist
+      .filter(h => {
+        const d = parseDateBR(h.data);
+        return d && d.getMonth() === curMonth && d.getFullYear() === curYear &&
+          (h.status === "aprovada" || h.status === "aprovado" || h.status === "pago");
+      })
+      .reduce((s, h) => s + (h.total || 0), 0);
+
+    const monthExpenses = txns
+      .filter(t => {
+        const d = new Date(t.data + "T12:00:00");
+        return t.tipo === "saida" && d.getMonth() === curMonth && d.getFullYear() === curYear;
+      })
+      .reduce((s, t) => s + (t.valor || 0), 0);
+
+    const monthEntries = txns
+      .filter(t => {
+        const d = new Date(t.data + "T12:00:00");
+        return t.tipo === "entrada" && d.getMonth() === curMonth && d.getFullYear() === curYear;
+      })
+      .reduce((s, t) => s + (t.valor || 0), 0);
+
+    const netProfit = monthEntries - monthExpenses;
+    const activeClients = clts.filter(c => c.status === "ativo").length;
+
+    const lastMonthRevenue = hist
+      .filter(h => {
+        const d = parseDateBR(h.data);
+        const lm = curMonth === 0 ? 11 : curMonth - 1;
+        const ly = curMonth === 0 ? curYear - 1 : curYear;
+        return d && d.getMonth() === lm && d.getFullYear() === ly &&
+          (h.status === "aprovada" || h.status === "aprovado" || h.status === "pago");
+      })
+      .reduce((s, h) => s + (h.total || 0), 0);
+
+    const lastMonthExpenses = txns
+      .filter(t => {
+        const d = new Date(t.data + "T12:00:00");
+        const lm = curMonth === 0 ? 11 : curMonth - 1;
+        const ly = curMonth === 0 ? curYear - 1 : curYear;
+        return t.tipo === "saida" && d.getMonth() === lm && d.getFullYear() === ly;
+      })
+      .reduce((s, t) => s + (t.valor || 0), 0);
+
+    const revenueChange = lastMonthRevenue ? ((monthRevenue - lastMonthRevenue) / lastMonthRevenue * 100) : 0;
+    const expenseChange = lastMonthExpenses ? ((monthExpenses - lastMonthExpenses) / lastMonthExpenses * 100) : 0;
+    const profitChange = lastMonthRevenue ? ((netProfit - (lastMonthRevenue - lastMonthExpenses)) / (lastMonthRevenue - lastMonthExpenses || 1) * 100) : 0;
+
+    const metricsArr = [
+      { label: "Receita do Mes", value: `R$ ${monthRevenue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, change: Math.abs(Math.round(revenueChange * 10) / 10), icon: DollarSign, borderClass: "border-top-green", color: "#00e676", changeUp: revenueChange >= 0 },
+      { label: "Despesas", value: `R$ ${monthExpenses.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, change: Math.abs(Math.round(expenseChange * 10) / 10), icon: TrendingUp, borderClass: "border-top-orange", color: "#ff6b35", changeUp: expenseChange <= 0 },
+      { label: "Lucro Liquido", value: `R$ ${netProfit.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, change: Math.abs(Math.round(profitChange * 10) / 10), icon: PiggyBank, borderClass: "border-top-purple", color: "#7c3aed", changeUp: profitChange >= 0 },
+      { label: "Clientes Ativos", value: `${activeClients}`, change: 0, icon: Users, borderClass: "border-top-yellow", color: "#ffb800", changeUp: true },
+    ];
+
+    const chartArr = [];
+    for (let i = 6; i >= 0; i--) {
+      const m = (curMonth - i + 12) % 12;
+      const y = curMonth - i < 0 ? curYear - 1 : curYear;
+      const receita = txns
+        .filter(t => { const d = new Date(t.data + "T12:00:00"); return d.getMonth() === m && d.getFullYear() === y && t.tipo === "entrada"; })
+        .reduce((s, t) => s + (t.valor || 0), 0);
+      const despesa = txns
+        .filter(t => { const d = new Date(t.data + "T12:00:00"); return d.getMonth() === m && d.getFullYear() === y && t.tipo === "saida"; })
+        .reduce((s, t) => s + (t.valor || 0), 0);
+      chartArr.push({ mes: MESES[m], receita, despesa });
+    }
+
+    const recentProps = hist.slice(0, 5).map(h => ({
+      client: h.cliente || "(sem nome)",
+      value: `R$ ${(h.total || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
+      status: h.status,
+      date: h.data || "",
+    }));
+
+    const recentTxns = txns.slice(-5).reverse().map(t => {
+      const d = new Date(t.data + "T12:00:00");
+      const diff = Math.floor((now - d) / (1000 * 60 * 60 * 24));
+      const dateStr = diff === 0 ? "Hoje" : diff === 1 ? "Ontem" : `${diff} dias atras`;
+      const initials = (t.cliente || "NA").split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase();
+      return {
+        client: t.cliente || "N/A",
+        avatar: initials || "NA",
+        service: t.categoria || "",
+        value: `R$ ${(t.valor || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
+        status: t.status === "pago" ? "pago" : t.status === "pendente" ? "pendente" : "pendente",
+        date: dateStr,
+      };
+    });
+
+    return { metrics: metricsArr, chartData: chartArr, recentProposals: recentProps, recentTransactions: recentTxns };
+  }, []);
 
   return (
     <div className="flex-1 min-h-screen page-enter">
@@ -129,23 +227,19 @@ export default function Dashboard() {
           >
             <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-text mb-4">Orcamentos Recentes</h2>
             <div className="space-y-2">
-              {[
-                { client: "Ana Souza", value: "R$ 2.400", status: "pago", date: "15/05" },
-                { client: "Barbearia King", value: "R$ 1.200", status: "aprovada", date: "12/05" },
-                { client: "Dra. Patricia", value: "R$ 3.600", status: "pendente", date: "08/05" },
-                { client: "Festa Junina", value: "R$ 800", status: "pendente", date: "05/05" },
-                { client: "Academia Fit", value: "R$ 600", status: "aprovada", date: "28/04" },
-              ].map((p, i) => (
+              {recentProposals.length > 0 ? recentProposals.map((p, i) => (
                 <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] hover:bg-white/[0.04] transition-colors cursor-pointer">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-text truncate">{p.client}</p>
                     <p className="text-xs text-text-muted">{p.date} &middot; <span className="font-semibold text-text-secondary">{p.value}</span></p>
                   </div>
-                  <span className={`px-2.5 py-1 rounded-md text-[10px] font-semibold uppercase tracking-[0.08em] ${statusClasses[p.status] || "status-rascunho"}`}>
-                    {statusLabels[p.status] || p.status}
+                  <span className={`px-2.5 py-1 rounded-md text-[10px] font-semibold uppercase tracking-[0.08em] ${statusClass(p.status)}`}>
+                    {statusLabel(p.status)}
                   </span>
                 </div>
-              ))}
+              )) : (
+                <p className="text-sm text-text-muted text-center py-8">Nenhum orcamento recente</p>
+              )}
             </div>
             <button className="w-full mt-4 text-xs text-primary hover:underline flex items-center justify-center gap-1 py-2">
               <FileText size={14} /> Ver todos os orcamentos
@@ -172,7 +266,7 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody>
-                {recentTransactions.map((t, i) => (
+                {recentTransactions.length > 0 ? recentTransactions.map((t, i) => (
                   <tr key={i} className="border-b border-border-card/40 transition-colors hover:bg-white/[0.02]">
                     <td className="py-3 pl-1">
                       <div className="flex items-center gap-2.5">
@@ -183,11 +277,13 @@ export default function Dashboard() {
                     <td className="py-3 text-text-secondary">{t.service}</td>
                     <td className="py-3 text-right text-text font-semibold font-display">{t.value}</td>
                     <td className="py-3 text-right">
-                      <span className={`inline-block px-2.5 py-1 rounded-md text-[10px] font-semibold uppercase tracking-[0.08em] ${statusClasses[t.status]}`}>{statusLabels[t.status]}</span>
+                      <span className={`inline-block px-2.5 py-1 rounded-md text-[10px] font-semibold uppercase tracking-[0.08em] ${statusClass(t.status)}`}>{statusLabel(t.status)}</span>
                     </td>
                     <td className="py-3 text-right text-text-muted text-xs pr-1">{t.date}</td>
                   </tr>
-                ))}
+                )) : (
+                  <tr><td colSpan={5} className="text-center py-12 text-text-muted text-sm">Nenhuma transacao encontrada</td></tr>
+                )}
               </tbody>
             </table>
           </div>

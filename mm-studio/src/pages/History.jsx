@@ -1,30 +1,47 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Search, Filter, FileText, Download, Eye, ChevronDown, CheckCircle, Clock, XCircle } from "lucide-react";
+import { getHistorico } from "../utils/storage";
 
-const proposals = [
-  { id: "ORC-001", client: "Ana Souza", service: "Identidade Visual", value: "R$ 2.400", status: "aprovado", date: "15/05/2026", payment: "Pix" },
-  { id: "ORC-002", client: "Barbearia King", service: "Social Media Mensal", value: "R$ 1.200", status: "aprovado", date: "12/05/2026", payment: "Boleto" },
-  { id: "ORC-003", client: "Dra. Patricia", service: "Site Institucional", value: "R$ 3.600", status: "pendente", date: "08/05/2026", payment: null },
-  { id: "ORC-004", client: "Festa Junina", service: "Cobertura Evento", value: "R$ 800", status: "cancelado", date: "05/05/2026", payment: null },
-  { id: "ORC-005", client: "Academia Fit", service: "Pacote Reels", value: "R$ 600", status: "aprovado", date: "28/04/2026", payment: "Cartao" },
-  { id: "ORC-006", client: "Restaurante Sabor", service: "Cardapio Digital", value: "R$ 1.800", status: "rascunho", date: "25/04/2026", payment: null },
-  { id: "ORC-007", client: "Studio Pilates", service: "Identidade Visual", value: "R$ 3.000", status: "aprovado", date: "20/04/2026", payment: "Pix" },
-  { id: "ORC-008", client: "Loja Online", service: "E-commerce", value: "R$ 5.200", status: "cancelado", date: "15/04/2026", payment: null },
-];
-
-const statusConfig = {
+const STATUS_MAP = {
+  aprovada: { label: "Aprovado", class: "status-aprovado", icon: CheckCircle },
   aprovado: { label: "Aprovado", class: "status-aprovado", icon: CheckCircle },
+  pago: { label: "Pago", class: "status-pago", icon: CheckCircle },
   pendente: { label: "Pendente", class: "status-pendente", icon: Clock },
-  cancelado: { label: "Cancelado", class: "status-cancelado", icon: XCircle },
+  enviada: { label: "Enviada", class: "status-pendente", icon: Clock },
+  recusada: { label: "Cancelado", class: "status-cancelado", icon: XCircle },
+  perdida: { label: "Cancelado", class: "status-cancelado", icon: XCircle },
   rascunho: { label: "Rascunho", class: "status-rascunho", icon: FileText },
 };
 
 const tabs = ["todos", "aprovado", "pendente", "rascunho", "cancelado"];
 
+function mapStatus(s) {
+  if (s === "aprovada" || s === "aprovado") return "aprovado";
+  if (s === "pago") return "aprovado";
+  if (s === "pendente" || s === "enviada") return "pendente";
+  if (s === "recusada" || s === "perdida") return "cancelado";
+  return "rascunho";
+}
+
 export default function History() {
   const [tab, setTab] = useState("todos");
   const [search, setSearch] = useState("");
+
+  const { proposals, totalCount } = useMemo(() => {
+    const hist = getHistorico();
+    const mapped = hist.map(h => ({
+      id: h.numero || `#${h.id}`,
+      client: h.cliente || "(sem nome)",
+      service: h.itens?.[0]?.desc || `${h.itens?.length || 0} itens`,
+      value: (h.total || 0),
+      valueStr: `R$ ${(h.total || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
+      status: mapStatus(h.status),
+      date: h.data || "",
+      payment: h.status === "pago" ? "Pix" : null,
+    }));
+    return { proposals: mapped, totalCount: mapped.length };
+  }, []);
 
   const filtered = proposals.filter(p => {
     if (tab !== "todos" && p.status !== tab) return false;
@@ -32,10 +49,7 @@ export default function History() {
     return true;
   });
 
-  const totalValue = filtered.reduce((acc, p) => {
-    const v = parseFloat(p.value.replace("R$ ", "").replace(".", "").replace(",", "."));
-    return acc + (isNaN(v) ? 0 : v);
-  }, 0);
+  const totalValue = filtered.reduce((acc, p) => acc + p.value, 0);
 
   return (
     <div className="flex-1 min-h-screen page-enter">
@@ -63,7 +77,7 @@ export default function History() {
               onClick={() => setTab(t)}
               className={`relative flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold uppercase tracking-[0.08em] transition-all ${tab === t ? "bg-primary text-black font-bold" : "bg-bg-card border border-border-card text-text-muted hover:text-text"}`}
             >
-              {t === "todos" ? "Todos" : statusConfig[t].label}
+              {t === "todos" ? "Todos" : STATUS_MAP[t === "cancelado" ? "recusada" : t === "aprovado" ? "aprovada" : t === "pendente" ? "pendente" : "rascunho"].label}
             </button>
           ))}
           <div className="relative ml-auto">
@@ -94,10 +108,10 @@ export default function History() {
               </thead>
               <tbody>
                 {filtered.map((p, i) => {
-                  const cfg = statusConfig[p.status];
+                  const cfg = STATUS_MAP[p.status === "aprovado" ? "aprovada" : p.status === "cancelado" ? "recusada" : p.status];
                   const Icon = cfg.icon;
                   return (
-                    <tr key={p.id} className="border-b border-border-card/30 transition-colors hover:bg-white/[0.02] group">
+                    <tr key={`${p.id}-${i}`} className="border-b border-border-card/30 transition-colors hover:bg-white/[0.02] group">
                       <td className="px-4 py-3.5 text-text-muted font-mono text-xs">{p.id}</td>
                       <td className="px-4 py-3.5">
                         <div className="flex items-center gap-2.5">
@@ -108,7 +122,7 @@ export default function History() {
                         </div>
                       </td>
                       <td className="px-4 py-3.5 text-text-secondary">{p.service}</td>
-                      <td className="px-4 py-3.5 text-right text-text font-semibold font-display">{p.value}</td>
+                      <td className="px-4 py-3.5 text-right text-text font-semibold font-display">{p.valueStr}</td>
                       <td className="px-4 py-3.5 text-center">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold uppercase tracking-[0.08em] ${cfg.class}`}>
                           <Icon size={11} /> {cfg.label}
@@ -134,7 +148,7 @@ export default function History() {
             </div>
           )}
           <div className="flex items-center justify-between px-4 py-3 border-t border-border-card/30 text-xs text-text-muted">
-            <span>Mostrando {filtered.length} de {proposals.length} orcamentos</span>
+            <span>Mostrando {filtered.length} de {totalCount} orcamentos</span>
             <div className="flex items-center gap-2">
               <button className="px-3 py-1 rounded border border-border-card bg-bg-card hover:text-text transition-colors disabled:opacity-40" disabled>Anterior</button>
               <button className="px-3 py-1 rounded border border-border-card bg-bg-card hover:text-text transition-colors">Proximo</button>

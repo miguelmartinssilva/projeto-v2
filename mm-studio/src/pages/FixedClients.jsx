@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star, Plus, X, Check, Clock, ChevronDown, Edit3, MessageCircle, DollarSign, FileText, Calendar } from "lucide-react";
 import { getFixos, saveFixo, deleteFixo } from "../utils/storage";
@@ -19,7 +19,7 @@ const statusColors = { pendente: "text-pending", andamento: "text-info", conclui
 const statusBg = { pendente: "bg-pending/10", andamento: "bg-info/10", concluido: "bg-success/10" };
 
 export default function FixedClients() {
-  const clientes = useMemo(() => getFixos(), []);
+  const [clientes, setClientes] = useState(() => getFixos());
   const [selected, setSelected] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
@@ -79,7 +79,7 @@ export default function FixedClients() {
       </div>
 
       <ClienteFixoPanel cliente={selected} onClose={() => setSelected(null)} />
-      <NovoFixoModal show={showModal} onClose={() => setShowModal(false)} />
+      <NovoFixoModal show={showModal} onClose={() => setShowModal(false)} onCreated={() => setClientes(getFixos())} />
     </div>
   );
 }
@@ -95,8 +95,13 @@ function ClienteFixoPanel({ cliente, onClose }) {
   if (!cliente) return null;
 
   const updateCliente = useCallback((updates) => {
-    const f = getFixos().map(c => c.id === cliente.id ? { ...c, ...updates } : c);
-    saveFixo(f.find(c => c.id === cliente.id));
+    const lista = getFixos();
+    const idx = lista.findIndex(c => c.id === cliente.id);
+    if (idx >= 0) {
+      lista[idx] = { ...lista[idx], ...updates };
+      saveFixo(lista[idx]);
+    }
+    setClientes(getFixos());
     showSaved();
   }, [cliente]);
 
@@ -369,7 +374,7 @@ function FinTab({ cliente, updateCliente }) {
   );
 }
 
-function NovoFixoModal({ show, onClose }) {
+function NovoFixoModal({ show, onClose, onCreated }) {
   const [nome, setNome] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [plano, setPlano] = useState("basico");
@@ -392,6 +397,7 @@ function NovoFixoModal({ show, onClose }) {
       historicoFinanceiro: [{ mes: mesKey(new Date()), valor, status: "pendente", dataPagamento: null }],
     };
     saveFixo(obj);
+    onCreated();
     onClose();
     setNome(""); setWhatsapp(""); setPlano("basico"); setValor(PLANOS.basico.valor);
   };

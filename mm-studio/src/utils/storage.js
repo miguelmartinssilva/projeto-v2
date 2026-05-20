@@ -123,8 +123,10 @@ const FIXOS_PADRAO = [
   { id: 6, nome: "Academia Corpo Livre", whatsapp: "11932109876", plano: "basico", valorMensal: 600, diaVencimento: 8, dataInicio: "2026-05-01", ativo: true, entregas: { "2026-05": [{ desc: "8 posts para redes sociais", qtd: 1, status: "pendente", obs: "" }, { desc: "1 arte estatica", qtd: 1, status: "pendente", obs: "" }] }, anotacoes: { "2026-05": "Cliente novo! Combinado de postar segunda, quarta e sexta." }, historicoFinanceiro: [{ mes: "2026-05", valor: 600, status: "pendente", dataPagamento: null }] },
 ];
 export const getFixos = () => {
-  const raw = localStorage.getItem(KEYS.FIXOS);
-  if (raw) return JSON.parse(raw);
+  try {
+    const raw = localStorage.getItem(KEYS.FIXOS);
+    if (raw) return JSON.parse(raw);
+  } catch {}
   set(KEYS.FIXOS, FIXOS_PADRAO);
   return FIXOS_PADRAO;
 };

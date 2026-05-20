@@ -15,7 +15,7 @@ export default function Clients() {
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("clientes");
 
-  const fixosCount = useMemo(() => getFixos().filter(c => c.ativo !== false).length, []);
+  const [fixosCount] = useState(() => getFixos().filter(c => c.ativo !== false).length);
 
   const { clients, statusCounts, clientHistory } = useMemo(() => {
     const raw = getClientes();

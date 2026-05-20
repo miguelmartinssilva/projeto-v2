@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Filter, FileText, Download, Eye, ChevronDown, CheckCircle, Clock, XCircle, Trash2, X } from "lucide-react";
-import { getHistorico, deleteHistorico } from "../utils/storage";
+import { getHistorico, saveHistorico, deleteHistorico } from "../utils/storage";
 import { jsPDF } from "jspdf";
 
 const STATUS_MAP = {
@@ -36,6 +36,7 @@ export default function History() {
   const [tab, setTab] = useState("todos");
   const [search, setSearch] = useState("");
   const [viewItem, setViewItem] = useState(null);
+  const [viewStatus, setViewStatus] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(null);
 
   const { proposals, rawItems, totalCount } = useMemo(() => {
@@ -64,7 +65,19 @@ export default function History() {
 
   const handleView = (p) => {
     const raw = rawItems.find(r => (r.numero || `#${r.id}`) === p.id);
-    if (raw) setViewItem(raw);
+    if (raw) { setViewItem(raw); setViewStatus(raw.status || "rascunho"); }
+  };
+
+  const handleStatusChange = (newStatus) => {
+    if (!viewItem) return;
+    const hist = getHistorico();
+    const idx = hist.findIndex(h => h.id === viewItem.id);
+    if (idx >= 0) {
+      hist[idx].status = newStatus;
+      saveHistorico(hist[idx]);
+      setViewItem(hist[idx]);
+      setViewStatus(newStatus);
+    }
   };
 
   const handleDownloadPDF = (p) => {
@@ -273,9 +286,17 @@ export default function History() {
                 </div>
                 <div className="bg-bg-elevated rounded-lg p-3 border border-border-card">
                   <p className="text-[10px] uppercase tracking-[0.1em] text-text-muted mb-2">Status</p>
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold uppercase tracking-[0.08em] ${STATUS_MAP[viewItem.status === "aprovado" ? "aprovada" : viewItem.status === "cancelado" ? "recusada" : viewItem.status]?.class || "status-rascunho"}`}>
-                    {statusLabel(viewItem.status)}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <select value={viewStatus} onChange={(e) => handleStatusChange(e.target.value)}
+                      className="flex-1 bg-bg-card border border-border-card rounded-lg px-3 py-2 text-sm text-text outline-none focus:border-primary/50">
+                      <option value="rascunho">Rascunho</option>
+                      <option value="pendente">Pendente</option>
+                      <option value="enviada">Enviada</option>
+                      <option value="aprovada">Aprovado</option>
+                      <option value="recusada">Cancelado</option>
+                      <option value="pago">Pago</option>
+                    </select>
+                  </div>
                 </div>
                 <div className="bg-bg-elevated rounded-lg p-3 border border-border-card">
                   <p className="text-[10px] uppercase tracking-[0.1em] text-text-muted mb-2">Itens</p>

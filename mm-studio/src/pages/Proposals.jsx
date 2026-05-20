@@ -262,26 +262,37 @@ export default function Proposals() {
 
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-bg-card rounded-xl p-6 card-border glow-primary">
               <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-text mb-4">Dados do Cliente</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="floating-label">
-                  <input type="text" id="cli-nome" placeholder=" " value={clientName} onChange={(e) => setClientName(e.target.value)} className="has-icon" />
-                  <Search size={14} className="input-icon" />
-                  <label htmlFor="cli-nome">Nome do cliente</label>
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="cli-nome" className="text-xs font-medium text-text-secondary uppercase tracking-[0.08em] mb-1.5 block">Nome do cliente</label>
+                  <input type="text" id="cli-nome" placeholder="Digite o nome do cliente" value={clientName} onChange={(e) => setClientName(e.target.value)}
+                    className="w-full bg-bg-elevated border border-border-card rounded-lg px-3.5 py-2.5 text-sm text-text placeholder-text-muted outline-none focus:border-primary/50 transition-colors"
+                  />
                 </div>
-                <div className="floating-label">
-                  <input type="text" id="cli-contato" placeholder=" " value={clientContact} onChange={(e) => setClientContact(e.target.value)} className="has-icon" />
-                  <MessageCircle size={14} className="input-icon" />
-                  <label htmlFor="cli-contato">WhatsApp</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="cli-contato" className="text-xs font-medium text-text-secondary uppercase tracking-[0.08em] mb-1.5 block">WhatsApp</label>
+                    <div className="relative">
+                      <MessageCircle size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+                      <input type="text" id="cli-contato" placeholder="(99) 99999-0000" value={clientContact} onChange={(e) => setClientContact(e.target.value)}
+                        className="w-full bg-bg-elevated border border-border-card rounded-lg pl-9 pr-3.5 py-2.5 text-sm text-text placeholder-text-muted outline-none focus:border-primary/50 transition-colors"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="cli-empresa" className="text-xs font-medium text-text-secondary uppercase tracking-[0.08em] mb-1.5 block">Empresa</label>
+                    <input type="text" id="cli-empresa" placeholder="Nome da empresa" value={clientCompany} onChange={(e) => setClientCompany(e.target.value)}
+                      className="w-full bg-bg-elevated border border-border-card rounded-lg px-3.5 py-2.5 text-sm text-text placeholder-text-muted outline-none focus:border-primary/50 transition-colors"
+                    />
+                  </div>
                 </div>
-                <div className="floating-label">
-                  <input type="text" id="cli-empresa" placeholder=" " value={clientCompany} onChange={(e) => setClientCompany(e.target.value)} />
-                  <label htmlFor="cli-empresa">Empresa</label>
-                </div>
-                <div className="floating-label">
-                  <select id="cli-tipo" value={tipoIndex} onChange={(e) => setTipoIndex(+e.target.value)}>
+                <div>
+                  <label htmlFor="cli-tipo" className="text-xs font-medium text-text-secondary uppercase tracking-[0.08em] mb-1.5 block">Tipo de Cliente</label>
+                  <select id="cli-tipo" value={tipoIndex} onChange={(e) => setTipoIndex(+e.target.value)}
+                    className="w-full bg-bg-elevated border border-border-card rounded-lg px-3.5 py-2.5 text-sm text-text outline-none focus:border-primary/50 transition-colors"
+                  >
                     {TIPOS_CLIENTE.map((t, i) => <option key={i} value={i}>{t.label} (x{t.value})</option>)}
                   </select>
-                  <label htmlFor="cli-tipo">Tipo de cliente</label>
                 </div>
               </div>
             </motion.div>

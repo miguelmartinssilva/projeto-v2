@@ -1,8 +1,9 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Plus, MessageCircle, Camera, X, FileText } from "lucide-react";
-import { getClientes, getHistorico } from "../utils/storage";
+import { Search, Plus, MessageCircle, Camera, X, FileText, Star } from "lucide-react";
+import { getClientes, getHistorico, getFixos } from "../utils/storage";
+import FixedClients from "./FixedClients";
 
 const statusColors = { ativo: "bg-success", pendente: "bg-pending", inativo: "bg-text-muted" };
 const statusLabels = { ativo: "Ativo", pendente: "Pendente", inativo: "Inativo" };
@@ -12,6 +13,9 @@ export default function Clients() {
   const [filter, setFilter] = useState("todos");
   const [selected, setSelected] = useState(null);
   const [search, setSearch] = useState("");
+  const [tab, setTab] = useState("clientes");
+
+  const fixosCount = useMemo(() => getFixos().filter(c => c.ativo !== false).length, []);
 
   const { clients, statusCounts, clientHistory } = useMemo(() => {
     const raw = getClientes();
@@ -62,7 +66,15 @@ export default function Clients() {
         </div>
 
         <div className="flex items-center gap-2 mb-6 flex-wrap">
-          {Object.entries(statusCounts).map(([key, count]) => (
+          <button onClick={() => setTab("clientes")}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold uppercase tracking-[0.08em] transition-all ${tab === "clientes" ? "bg-primary text-black font-bold" : "bg-bg-card border border-border-card text-text-muted hover:text-text"}`}>
+            Clientes <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${tab === "clientes" ? "bg-black/20 text-black/70" : "bg-bg-elevated text-text-muted"}`}>{clients.length}</span>
+          </button>
+          <button onClick={() => setTab("fixos")}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold uppercase tracking-[0.08em] transition-all ${tab === "fixos" ? "bg-amber text-black font-bold" : "bg-bg-card border border-border-card text-text-muted hover:text-text"}`}>
+            <Star size={13} /> Fixos <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${tab === "fixos" ? "bg-black/20 text-black/70" : "bg-bg-elevated text-text-muted"}`}>{fixosCount}</span>
+          </button>
+          {tab === "clientes" && Object.entries(statusCounts).map(([key, count]) => (
             <button
               key={key}
               onClick={() => setFilter(key)}
@@ -72,7 +84,7 @@ export default function Clients() {
               <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${filter === key ? "bg-black/20 text-black/70" : "bg-bg-elevated text-text-muted"}`}>{count}</span>
             </button>
           ))}
-          <div className="relative ml-auto">
+          {tab === "clientes" && <div className="relative ml-auto">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
             <input
               type="search"
@@ -81,9 +93,10 @@ export default function Clients() {
               onChange={(e) => setSearch(e.target.value)}
               className="bg-bg-card border border-border-card rounded-lg pl-9 pr-3 py-2 text-sm text-text placeholder-text-muted outline-none focus:border-primary/50 transition-colors w-56"
             />
-          </div>
+          </div>}
         </div>
 
+        {tab === "fixos" ? <FixedClients /> : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="space-y-2">
             <AnimatePresence>
@@ -203,7 +216,7 @@ export default function Clients() {
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
+        </div>)}
       </div>
     </div>
   );

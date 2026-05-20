@@ -8,6 +8,7 @@ const KEYS = {
   PERFIL_ATIVO: "orc_perfil_ativo_v1",
   CONTADOR: "orc_contador_v1",
   DESPESAS: "despesas_miguel",
+  FIXOS: "clientes_fixos_miguel",
 };
 
 function get(key, fallback) {
@@ -112,3 +113,13 @@ const PACOTES_PADRAO = [
   { id: 4, nome: "Pacote Reels Mensal", servico: "Video / Reels", qtd: 4, precoTotal: 500, descricao: "4 videos por mes" },
   { id: 5, nome: "Pacote Evento Full", servico: "Cobertura de Evento", qtd: 4, precoTotal: 700, descricao: "Cobertura + edicao inclusa" },
 ];
+
+export const getFixos = () => get(KEYS.FIXOS, []);
+export const saveFixo = (item) => {
+  const lista = getFixos();
+  const idx = lista.findIndex(f => f.id === item.id);
+  if (idx >= 0) lista[idx] = item;
+  else lista.unshift(item);
+  set(KEYS.FIXOS, lista);
+};
+export const deleteFixo = (id) => set(KEYS.FIXOS, getFixos().filter(f => f.id !== id));

@@ -17,6 +17,7 @@ export default function Settings() {
   const [showPass, setShowPass] = useState(false);
   const [saved, setSaved] = useState(false);
   const timerRef = useRef(null);
+  const saveFnRef = useRef(null);
 
   const profile = useMemo(() => getPerfilAtivo(), []);
 
@@ -24,10 +25,17 @@ export default function Settings() {
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
   }, []);
 
-  const handleSave = () => {
+  const showSaved = () => {
     setSaved(true);
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleSave = () => {
+    if (saveFnRef.current) {
+      saveFnRef.current();
+      showSaved();
+    }
   };
 
   return (
@@ -72,9 +80,9 @@ export default function Settings() {
           </div>
 
           <motion.div key={tab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="lg:col-span-3">
-            {tab === "perfil" && <ProfileForm initial={profile} onSave={handleSave} />}
-            {tab === "loja" && <CompanyForm initial={profile} onSave={handleSave} />}
-            {tab === "pagamento" && <PaymentForm initial={profile} onSave={handleSave} />}
+            {tab === "perfil" && <ProfileForm initial={profile} onSave={showSaved} saveRef={saveFnRef} />}
+            {tab === "loja" && <CompanyForm initial={profile} onSave={showSaved} saveRef={saveFnRef} />}
+            {tab === "pagamento" && <PaymentForm initial={profile} onSave={showSaved} saveRef={saveFnRef} />}
             {tab === "aparencia" && <AppearanceForm />}
             {tab === "dados" && <DataForm />}
             {tab === "seguranca" && <SecurityForm showPass={showPass} setShowPass={setShowPass} />}
@@ -108,7 +116,7 @@ function Input({ label, id, type = "text", placeholder, defaultValue, suffix, on
             <span className="text-xs text-text-muted font-mono">{defaultValue || "#00e676"}</span>
           </div>
         ) : (
-          <input type={type} id={id} placeholder={placeholder} defaultValue={defaultValue} onChange={onChange}
+          <input type={type} id={id} placeholder={placeholder} value={defaultValue} onChange={onChange}
             className="w-full bg-bg-elevated border border-border-card rounded-lg px-3.5 py-2.5 text-sm text-text placeholder-text-muted outline-none focus:border-primary/50 transition-colors"
           />
         )}
@@ -147,7 +155,7 @@ function saveProfileField(field, value) {
   }
 }
 
-function ProfileForm({ initial, onSave }) {
+function ProfileForm({ initial, onSave, saveRef }) {
   const [nome, setNome] = useState(initial?.nome || "Miguel Martins");
   const [email, setEmail] = useState(initial?.email || "");
   const [telefone, setTelefone] = useState(initial?.telefone || "");
@@ -164,6 +172,8 @@ function ProfileForm({ initial, onSave }) {
     saveProfileField("tipo", tipo);
     onSave();
   };
+
+  saveRef.current = handleSave;
 
   return (
     <div className="space-y-4">
@@ -207,7 +217,7 @@ function ProfileForm({ initial, onSave }) {
   );
 }
 
-function CompanyForm({ initial, onSave }) {
+function CompanyForm({ initial, onSave, saveRef }) {
   const [nomeEmpresa, setNomeEmpresa] = useState(initial?.nomeEmpresa || "MM Studio");
   const [cnpj, setCnpj] = useState(initial?.cnpj || "");
   const [endereco, setEndereco] = useState(initial?.endereco || "");
@@ -220,6 +230,8 @@ function CompanyForm({ initial, onSave }) {
     saveProfileField("email", email);
     onSave();
   };
+
+  saveRef.current = handleSave;
 
   return (
     <div className="space-y-4">
@@ -245,7 +257,7 @@ function CompanyForm({ initial, onSave }) {
   );
 }
 
-function PaymentForm({ initial, onSave }) {
+function PaymentForm({ initial, onSave, saveRef }) {
   const [pixTipo, setPixTipo] = useState(initial?.pixTipo || "cpf");
   const [pixChave, setPixChave] = useState(initial?.pixChave || "");
   const [mostrarPix, setMostrarPix] = useState(initial?.mostrarPix !== false);
@@ -256,6 +268,8 @@ function PaymentForm({ initial, onSave }) {
     saveProfileField("mostrarPix", mostrarPix);
     onSave();
   };
+
+  saveRef.current = handleSave;
 
   return (
     <SectionCard title="Configuracao de Pagamento" desc="Informacoes de PIX que aparecem nos PDFs de proposta">

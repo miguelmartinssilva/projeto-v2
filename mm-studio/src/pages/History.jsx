@@ -165,14 +165,14 @@ export default function History() {
   return (
     <div className="flex-1 min-h-screen page-enter">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-3">
           <div>
             <p className="text-xs text-text-muted mb-1 tracking-wide">MM Studio <span className="mx-1.5 text-border-light">/</span> <span className="text-text-secondary font-medium">Historico</span></p>
             <h1 className="text-xl font-display font-bold text-text">Historico de Orcamentos</h1>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="bg-bg-card border border-border-card rounded-lg px-4 py-2 text-sm">
-              <span className="text-text-muted">Total filtrado: </span>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="bg-bg-card border border-border-card rounded-lg px-3 sm:px-4 py-2 text-xs sm:text-sm flex-1 sm:flex-none text-center sm:text-left">
+              <span className="text-text-muted hidden sm:inline">Total filtrado: </span>
               <span className="text-primary font-display font-bold">R$ {totalValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
             </div>
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border-card bg-bg-card text-text-secondary hover:text-text text-sm transition-colors">
@@ -210,10 +210,10 @@ export default function History() {
                 <tr className="text-text-muted text-[11px] uppercase tracking-[0.1em] border-b border-border-card bg-white/[0.02]">
                   <th className="text-left px-4 py-3.5 font-semibold">ID</th>
                   <th className="text-left px-4 py-3.5 font-semibold">Cliente</th>
-                  <th className="text-left px-4 py-3.5 font-semibold">Servico</th>
+                  <th className="text-left px-4 py-3.5 font-semibold hidden md:table-cell">Servico</th>
                   <th className="text-right px-4 py-3.5 font-semibold">Valor</th>
                   <th className="text-center px-4 py-3.5 font-semibold">Status</th>
-                  <th className="text-right px-4 py-3.5 font-semibold">Data</th>
+                  <th className="text-right px-4 py-3.5 font-semibold hidden sm:table-cell">Data</th>
                   <th className="text-center px-4 py-3.5 font-semibold">Acoes</th>
                 </tr>
               </thead>
@@ -232,16 +232,16 @@ export default function History() {
                           <span className="text-text font-medium">{p.client}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3.5 text-text-secondary">{p.service}</td>
+                      <td className="px-4 py-3.5 text-text-secondary hidden md:table-cell">{p.service}</td>
                       <td className="px-4 py-3.5 text-right text-text font-semibold font-display">{p.valueStr}</td>
                       <td className="px-4 py-3.5 text-center">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold uppercase tracking-[0.08em] ${cfg.class}`}>
                           <Icon size={11} /> {cfg.label}
                         </span>
                       </td>
-                      <td className="px-4 py-3.5 text-right text-text-muted text-xs">{p.date}</td>
+                      <td className="px-4 py-3.5 text-right text-text-muted text-xs hidden sm:table-cell">{p.date}</td>
                       <td className="px-4 py-3.5 text-center">
-                        <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity xs:opacity-100">
                           <button onClick={() => handleView(p)} className="p-1.5 rounded-lg hover:bg-white/5 text-text-muted hover:text-text transition-colors" title="Visualizar"><Eye size={14} /></button>
                           <button onClick={() => handleDownloadPDF(p)} className="p-1.5 rounded-lg hover:bg-white/5 text-text-muted hover:text-primary transition-colors" title="Baixar PDF"><Download size={14} /></button>
                           <button onClick={() => handleDelete(p)} className="p-1.5 rounded-lg hover:bg-white/5 text-text-muted hover:text-danger transition-colors" title="Excluir"><Trash2 size={14} /></button>

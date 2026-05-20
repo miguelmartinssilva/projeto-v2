@@ -50,6 +50,29 @@ export default function FixedClients() {
         </div>
       </div>
 
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 mb-4">
+        {activeClients.map(c => {
+          const plan = planos[c.plano] || planos.basico;
+          const mk = mesKey(new Date());
+          const fin = (c.historicoFinanceiro || []).find(h => h.mes === mk);
+          const entregas = (c.entregas || {})[mk] || [];
+          const totalFeito = entregas.reduce((s, i) => s + (i.feito || 0), 0);
+          const totalQtd = entregas.reduce((s, i) => s + (i.qtd || 0), 0);
+          return (
+            <div key={c.id} className="bg-bg-elevated rounded-lg p-2 border border-border-card text-center">
+              <p className="text-[10px] font-semibold text-text truncate">{c.nome.split(" ")[0]}</p>
+              <span className={`inline-block text-[9px] px-1.5 py-0.5 rounded-full font-semibold mt-0.5`} style={{ background: plan.bg, color: plan.cor }}>{plan.nome}</span>
+              <div className="mt-1 flex items-center justify-center gap-1.5">
+                <span className={`text-[10px] ${fin?.status === "pago" ? "text-success" : "text-pending"}`}>
+                  {fin?.status === "pago" ? "Pago" : "Aberto"}
+                </span>
+                {totalQtd > 0 && <span className="text-[9px] text-text-muted">{totalFeito}/{totalQtd}</span>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {activeClients.map(c => {
           const plan = planos[c.plano] || planos.basico;
@@ -247,8 +270,9 @@ function EntregasTab({ cliente, updateCliente }) {
 
   useEffect(() => { setItens(mesEntregas); }, [cliente.id, mk]);
 
-  const concluidos = itens.filter(i => i.status === "concluido").length;
-  const progresso = itens.length ? Math.round(concluidos / itens.length * 100) : 0;
+  const totalFeito = itens.reduce((s, i) => s + (i.feito || 0), 0);
+  const totalQtd = itens.reduce((s, i) => s + (i.qtd || 0), 0);
+  const progresso = totalQtd ? Math.round(totalFeito / totalQtd * 100) : 0;
 
   const saveItens = (novos) => {
     setItens(novos);
@@ -269,11 +293,14 @@ function EntregasTab({ cliente, updateCliente }) {
         <div className="flex-1 bg-bg-elevated rounded-full h-2 overflow-hidden border border-border-card">
           <div className="h-full bg-amber rounded-full transition-all duration-500" style={{ width: `${progresso}%` }} />
         </div>
-        <span className="text-xs text-text-muted font-medium">{progresso}%</span>
+        <span className="text-xs text-text-muted font-medium">{totalFeito}/{totalQtd} ({progresso}%)</span>
       </div>
 
       <div className="space-y-2">
-        {itens.map((item, i) => (
+        {itens.map((item, i) => {
+          const feito = item.feito || 0;
+          const qtd = item.qtd || 1;
+          return (
           <div key={i} className="flex items-center gap-2 p-3 bg-bg-elevated rounded-lg border border-border-card/50">
             <button onClick={() => toggleStatus(i)} className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${item.status === "concluido" ? "bg-success border-success" : "border-border-card hover:border-amber/50"}`}>
               {item.status === "concluido" && <Check size={11} className="text-black" />}
@@ -282,17 +309,22 @@ function EntregasTab({ cliente, updateCliente }) {
             <div className="flex-1 min-w-0">
               <input type="text" value={item.desc || ""} onChange={(e) => { const c = [...itens]; c[i] = { ...c[i], desc: e.target.value }; saveItens(c); }} placeholder="Descricao da entrega" className="w-full bg-transparent border-none outline-none text-sm text-text placeholder-text-muted" />
               <div className="flex items-center gap-2 mt-1">
-                <input type="number" min="1" value={item.qtd || 1} onChange={(e) => { const c = [...itens]; c[i] = { ...c[i], qtd: +e.target.value }; saveItens(c); }} className="w-12 bg-bg-input border border-border-card rounded px-1.5 py-0.5 text-[11px] text-text text-center" />
+                <div className="flex items-center gap-0.5 bg-bg-input border border-border-card rounded px-1.5 py-0.5 text-[11px]">
+                  <button onClick={() => saveItens(itens.map((j, idx) => idx === i ? { ...j, feito: Math.max(0, (j.feito || 0) - 1) } : j))} className="text-text-muted hover:text-text px-0.5">−</button>
+                  <span className="text-text font-medium min-w-[28px] text-center">{feito}/{qtd}</span>
+                  <button onClick={() => saveItens(itens.map((j, idx) => idx === i ? { ...j, feito: Math.min(j.qtd || 1, (j.feito || 0) + 1) } : j))} className="text-text-muted hover:text-text px-0.5">+</button>
+                </div>
                 <span className={`text-[10px] font-medium ${statusColors[item.status]}`}>{statusLabels[item.status]}</span>
                 <input type="text" value={item.obs || ""} onChange={(e) => { const c = [...itens]; c[i] = { ...c[i], obs: e.target.value }; saveItens(c); }} placeholder="Obs..." className="flex-1 bg-transparent border-none outline-none text-[11px] text-text-muted placeholder-text-muted" />
               </div>
             </div>
             <button onClick={() => saveItens(itens.filter((_, j) => j !== i))} className="text-text-muted hover:text-danger p-1"><X size={13} /></button>
           </div>
-        ))}
+          );
+        })}
       </div>
 
-      <button onClick={() => saveItens([...itens, { desc: "", qtd: 1, status: "pendente", obs: "" }])} className="flex items-center gap-1.5 text-xs text-amber hover:underline">
+      <button onClick={() => saveItens([...itens, { desc: "", qtd: 1, feito: 0, status: "pendente", obs: "" }])} className="flex items-center gap-1.5 text-xs text-amber hover:underline">
         <Plus size={14} /> Adicionar entrega
       </button>
     </div>

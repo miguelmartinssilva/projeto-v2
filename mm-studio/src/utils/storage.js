@@ -7,6 +7,7 @@ const KEYS = {
   PERFIS: "orc_perfis_v1",
   PERFIL_ATIVO: "orc_perfil_ativo_v1",
   CONTADOR: "orc_contador_v1",
+  DESPESAS: "despesas_miguel",
 };
 
 function get(key, fallback) {
@@ -37,6 +38,17 @@ export const saveHistorico = (item) => {
 export const deleteHistorico = (id) => {
   const hist = getHistorico().filter(h => h.id !== id);
   set(KEYS.HIST, hist);
+};
+export const getDespesas = () => get(KEYS.DESPESAS, []);
+export const saveDespesa = (item) => {
+  const lista = getDespesas();
+  const idx = lista.findIndex(d => d.id === item.id);
+  if (idx >= 0) lista[idx] = item;
+  else lista.unshift(item);
+  set(KEYS.DESPESAS, lista);
+};
+export const deleteDespesa = (id) => {
+  set(KEYS.DESPESAS, getDespesas().filter(d => d.id !== id));
 };
 
 export const getClientes = () => get(KEYS.CLIENTES, []);

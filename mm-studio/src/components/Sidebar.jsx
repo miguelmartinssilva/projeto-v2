@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, FileText, Users, DollarSign, History, Settings, LogOut, Menu, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { LayoutDashboard, FileText, Users, DollarSign, TrendingDown, History, Settings, LogOut, Menu, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -8,6 +8,7 @@ const menuItems = [
   { label: "Orcamento", icon: FileText, path: "/orcamento" },
   { label: "Clientes", icon: Users, path: "/clientes" },
   { label: "Financeiro", icon: DollarSign, path: "/financeiro" },
+  { label: "Despesas", icon: TrendingDown, path: "/despesas" },
   { label: "Historico", icon: History, path: "/historico" },
 ];
 

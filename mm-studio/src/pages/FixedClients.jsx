@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, Plus, X, Check, Clock, ChevronDown, Edit3, MessageCircle, DollarSign, FileText, Calendar } from "lucide-react";
-import { getFixos, saveFixo, deleteFixo } from "../utils/storage";
+import { Star, Plus, X, Check, Clock, Edit3, DollarSign, FileText, Calendar } from "lucide-react";
+import { getFixos, saveFixo } from "../utils/storage";
 
 const PLANOS = {
   basico: { nome: "Basico", valor: 600, cor: "#448aff", bg: "#448aff15", entregas: ["8 posts para redes sociais", "1 arte estatica", "Agendamento semanal"] },
@@ -78,32 +78,38 @@ export default function FixedClients() {
         )}
       </div>
 
-      <ClienteFixoPanel cliente={selected} onClose={() => setSelected(null)} />
+      <ClienteFixoPanel cliente={selected} onClose={() => setSelected(null)} onUpdate={() => setClientes(getFixos())} />
       <NovoFixoModal show={showModal} onClose={() => setShowModal(false)} onCreated={() => setClientes(getFixos())} />
     </div>
   );
 }
 
-function ClienteFixoPanel({ cliente, onClose }) {
+function ClienteFixoPanel({ cliente, onClose, onUpdate }) {
   const [tab, setTab] = useState("plano");
   const [saved, setSaved] = useState(false);
   const timer = useRef(null);
 
-  const showSaved = () => { setSaved(true); if (timer.current) clearTimeout(timer.current); timer.current = setTimeout(() => setSaved(false), 1500); };
+  const showSaved = useCallback(() => {
+    setSaved(true);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setSaved(false), 1500);
+  }, []);
+
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
-  if (!cliente) return null;
-
   const updateCliente = useCallback((updates) => {
+    if (!cliente) return;
     const lista = getFixos();
     const idx = lista.findIndex(c => c.id === cliente.id);
     if (idx >= 0) {
       lista[idx] = { ...lista[idx], ...updates };
       saveFixo(lista[idx]);
     }
-    setClientes(getFixos());
+    onUpdate();
     showSaved();
-  }, [cliente]);
+  }, [cliente, onUpdate]);
+
+  if (!cliente) return null;
 
   return (
     <AnimatePresence>

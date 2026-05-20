@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { TrendingDown, Plus, Calendar, Filter, Edit3, Trash2, X, RefreshCw, ArrowUpDown, Search, DollarSign, BadgePercent } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
-import { getDespesas, saveDespesa, deleteDespesa } from "../utils/storage";
+import { getDespesas, saveDespesa, deleteDespesa, getTransactions, saveTransactions } from "../utils/storage";
 
 const CATEGORIAS = [
   "Ferramentas", "Software", "Marketing", "Equipamento", "Transporte", "Alimentacao", "Outros"
@@ -106,7 +106,11 @@ export default function Expenses() {
   const handleDelete = (d) => setConfirmDelete(d);
 
   const confirmDel = () => {
-    if (confirmDelete) deleteDespesa(confirmDelete.id);
+    if (confirmDelete) {
+      deleteDespesa(confirmDelete.id);
+      const txns = getTransactions().filter(t => t.id !== confirmDelete.id);
+      saveTransactions(txns);
+    }
     setConfirmDelete(null);
   };
 
@@ -292,6 +296,16 @@ function ExpenseModal({ item, onClose }) {
       recorrente,
     };
     saveDespesa(obj);
+    const trans = {
+      id: obj.id,
+      tipo: "saida",
+      cliente: obj.descricao,
+      categoria: obj.categoria,
+      valor: obj.valor,
+      data: obj.data,
+      status: "pago",
+    };
+    saveTransactions(trans);
     onClose();
   };
 

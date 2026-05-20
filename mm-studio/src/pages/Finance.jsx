@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { DollarSign, TrendingDown, PiggyBank, Clock, ArrowUpRight, ArrowDownRight, Check } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { getTransactions } from "../utils/storage";
+import { getTransactions, getDespesas } from "../utils/storage";
 
 const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 const PIE_COLORS = ["#00e676","#7c3aed","#448aff","#ffb800","#ff6b35","#ff4d6d","#00bcd4","#69f0ae"];
@@ -30,9 +30,15 @@ export default function Finance() {
 
   const { topCards, chartData, pieData, pendings } = useMemo(() => {
     const txns = getTransactions();
+    const despesas = getDespesas();
+    const saidas = [
+      ...txns.filter(t => t.tipo === "saida"),
+      ...despesas.filter(d => !txns.some(t => t.tipo === "saida" && t.id === d.id)),
+    ];
+    const allTxns = [...txns.filter(t => t.tipo !== "saida"), ...saidas];
 
     const totalEntradas = txns.filter(t => t.tipo === "entrada").reduce((s, t) => s + (t.valor || 0), 0);
-    const totalSaidas = txns.filter(t => t.tipo === "saida").reduce((s, t) => s + (t.valor || 0), 0);
+    const totalSaidas = allTxns.filter(t => t.tipo === "saida").reduce((s, t) => s + (t.valor || 0), 0);
     const totalPendentes = txns.filter(t => t.status === "pendente").reduce((s, t) => s + (t.valor || 0), 0);
     const lucro = totalEntradas - totalSaidas;
 
@@ -43,7 +49,7 @@ export default function Finance() {
       return t.tipo === "entrada" && d.getMonth() === lm && d.getFullYear() === ly;
     }).reduce((s, t) => s + (t.valor || 0), 0);
 
-    const lastMonthSaidas = txns.filter(t => {
+    const lastMonthSaidas = allTxns.filter(t => {
       const d = new Date(t.data + "T12:00:00");
       const lm = curMonth === 0 ? 11 : curMonth - 1;
       const ly = curMonth === 0 ? curYear - 1 : curYear;
@@ -69,7 +75,7 @@ export default function Finance() {
       const m = (curMonth - i + 12) % 12;
       const y = curMonth - i < 0 ? curYear - 1 : curYear;
       const receita = txns.filter(t => { const d = new Date(t.data + "T12:00:00"); return d.getMonth() === m && d.getFullYear() === y && t.tipo === "entrada"; }).reduce((s, t) => s + (t.valor || 0), 0);
-      const despesa = txns.filter(t => { const d = new Date(t.data + "T12:00:00"); return d.getMonth() === m && d.getFullYear() === y && t.tipo === "saida"; }).reduce((s, t) => s + (t.valor || 0), 0);
+      const despesa = allTxns.filter(t => { const d = new Date(t.data + "T12:00:00"); return d.getMonth() === m && d.getFullYear() === y && t.tipo === "saida"; }).reduce((s, t) => s + (t.valor || 0), 0);
       chart.push({ mes: MESES[m], receita, despesa });
     }
 

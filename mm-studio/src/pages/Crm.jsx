@@ -7,27 +7,29 @@ const statusColors = { ativo: "bg-success", pendente: "bg-pending", inativo: "bg
 const statusLabels = { ativo: "Ativo", pendente: "Pendente", inativo: "Inativo" };
 const tipoLabels = { avulso: "Avulso", mensal: "Mensal", pacote: "Pacote", projeto: "Projeto", retainer: "Retainer" };
 const tipoColors = { avulso: "bg-text-muted/15 text-text-muted", mensal: "bg-primary/15 text-primary", pacote: "bg-purple-500/15 text-purple-400", projeto: "bg-blue-500/15 text-blue-400", retainer: "bg-amber/15 text-amber" };
-const emptyForm = { nome: "", empresa: "", telefone: "", email: "", instagram: "", status: "pendente", tipo: "avulso" };
+function emptyForm() { return { nome: "", empresa: "", telefone: "", email: "", instagram: "", status: "pendente", tipo: "avulso" }; }
 
 export default function Crm() {
   const [raw, setRaw] = useState(() => getClientes());
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("todos");
+  const [tipoFilter, setTipoFilter] = useState("todos");
   const [dialog, setDialog] = useState(false);
   const [editId, setEditId] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const refresh = () => setRaw(getClientes());
 
   const clients = useMemo(() => {
+    const hist = getHistorico();
     let list = raw.map(c => {
-      const hist = getHistorico();
       const props = hist.filter(h => h.cliente && c.nome && h.cliente.toLowerCase().includes(c.nome.toLowerCase()));
       return { ...c, totalProps: props.length, totalValue: props.reduce((s, h) => s + (h.total || 0), 0), lastProp: props[0]?.data || "—" };
     });
     if (filter !== "todos") list = list.filter(c => c.status === filter);
+    if (tipoFilter !== "todos") list = list.filter(c => c.tipo === tipoFilter);
     if (search) { const s = search.toLowerCase(); list = list.filter(c => c.nome?.toLowerCase().includes(s) || c.empresa?.toLowerCase().includes(s)); }
     return list;
-  }, [raw, filter, search]);
+  }, [raw, filter, tipoFilter, search]);
 
   const stats = useMemo(() => ({
     total: raw.length,
@@ -47,7 +49,7 @@ export default function Crm() {
     saveClientes(lista);
     refresh();
     setDialog(false);
-    setForm({ ...emptyForm });
+    setForm(emptyForm());
     setEditId(null);
   };
 
@@ -71,7 +73,7 @@ export default function Crm() {
             <p className="text-xs text-text-muted mt-1">Gerencie seus clientes e relacionamentos</p>
           </div>
           <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-            onClick={() => { setForm({ ...emptyForm }); setEditId(null); setDialog(true); }}
+            onClick={() => { setForm(emptyForm()); setEditId(null); setDialog(true); }}
             className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg">
             <Plus size={16} /> Novo Cliente
           </motion.button>
@@ -101,14 +103,22 @@ export default function Crm() {
               <input type="text" placeholder="Buscar cliente..." value={search} onChange={e => setSearch(e.target.value)}
                 className="w-full bg-bg-input border border-border-card rounded-lg pl-9 pr-3 py-2 text-sm text-text placeholder-text-muted outline-none focus:border-primary transition-colors" />
             </div>
-            <div className="flex gap-1">
-              {["todos", "ativo", "pendente", "inativo"].map(f => (
-                <button key={f} onClick={() => setFilter(f)}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-[0.08em] transition-all ${filter === f ? "btn-primary" : "text-text-muted hover:text-text bg-white/[0.04]"}`}>
-                  {f === "todos" ? "Todos" : f}
-                </button>
-              ))}
-            </div>
+          <div className="flex gap-1">
+            {["todos", "ativo", "pendente", "inativo"].map(f => (
+              <button key={f} onClick={() => setFilter(f)}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-[0.08em] transition-all ${filter === f ? "btn-primary" : "text-text-muted hover:text-text bg-white/[0.04]"}`}>
+                {f === "todos" ? "Todos" : f}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-1">
+            {["todos", "avulso", "mensal", "pacote", "projeto", "retainer"].map(t => (
+              <button key={t} onClick={() => setTipoFilter(t)}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-[0.08em] transition-all ${tipoFilter === t ? "btn-primary" : "text-text-muted hover:text-text bg-white/[0.04]"}`}>
+                {t === "todos" ? "Todos tipos" : tipoLabels[t] || t}
+              </button>
+            ))}
+          </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

@@ -3,21 +3,21 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Plus, X, Edit3, Trash2, Package, DollarSign, Tag } from "lucide-react";
 import { getServicos, saveServicos, getPacotes, savePacotes } from "../utils/storage";
 
-const emptyServico = { nome: "", unidade: "por arte", preco: "" };
-const emptyPacote = { nome: "", servico: "", qtd: 1, precoTotal: "", descricao: "" };
+function emptyServico() { return { nome: "", unidade: "por arte", preco: "" }; }
+function emptyPacote() { return { nome: "", servico: "", qtd: 1, precoTotal: "", descricao: "" }; }
 
 export default function Catalogo() {
   const [tab, setTab] = useState("servicos");
   const [servicos, setServicos] = useState(() => getServicos());
   const [pacotes, setPacotes] = useState(() => getPacotes());
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState(tab === "servicos" ? emptyServico : emptyPacote);
+  const [form, setForm] = useState(tab === "servicos" ? emptyServico() : emptyPacote());
   const [editingId, setEditingId] = useState(null);
   const refresh = () => { setServicos(getServicos()); setPacotes(getPacotes()); };
 
   const switchTab = (t) => {
     setTab(t);
-    setForm(t === "servicos" ? { ...emptyServico } : { ...emptyPacote });
+    setForm(t === "servicos" ? emptyServico() : emptyPacote());
     setEditingId(null);
     setShowModal(false);
   };
@@ -38,7 +38,7 @@ export default function Catalogo() {
     }
     refresh();
     setShowModal(false);
-    setForm(tab === "servicos" ? { ...emptyServico } : { ...emptyPacote });
+    setForm(tab === "servicos" ? emptyServico() : emptyPacote());
     setEditingId(null);
   };
 
@@ -69,7 +69,7 @@ export default function Catalogo() {
           </div>
           <motion.button
             whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-            onClick={() => { setForm(tab === "servicos" ? { ...emptyServico } : { ...emptyPacote }); setEditingId(null); setShowModal(true); }}
+            onClick={() => { setForm(tab === "servicos" ? emptyServico() : emptyPacote()); setEditingId(null); setShowModal(true); }}
             className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg"
           >
             <Plus size={16} /> Adicionar

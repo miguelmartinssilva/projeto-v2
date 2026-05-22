@@ -16,16 +16,16 @@ function fmt(v) { return (v || 0).toLocaleString("pt-BR", { minimumFractionDigit
 
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 
-const expenseFormInit = { descricao: "", valor: "", categoria: "Outros", data: new Date().toISOString().slice(0, 10) };
-const incomeFormInit = { cliente: "", valor: "", categoria: "Design", data: new Date().toISOString().slice(0, 10) };
+function incomeFormInit() { return { cliente: "", valor: "", categoria: "Design", data: new Date().toISOString().slice(0, 10) }; }
+function expenseFormInit() { return { descricao: "", valor: "", categoria: "Outros", data: new Date().toISOString().slice(0, 10) }; }
 
 export default function Financeiro() {
   const [txns, setTxns] = useState(() => getTransactions());
   const [despesas, setDespesas] = useState(() => getDespesas());
   const [showIncome, setShowIncome] = useState(false);
   const [showExpense, setShowExpense] = useState(false);
-  const [incomeForm, setIncomeForm] = useState(incomeFormInit);
-  const [expenseForm, setExpenseForm] = useState(expenseFormInit);
+  const [incomeForm, setIncomeForm] = useState(incomeFormInit());
+  const [expenseForm, setExpenseForm] = useState(expenseFormInit());
   const [editExpense, setEditExpense] = useState(null);
 
   const refresh = () => { setTxns(getTransactions()); setDespesas(getDespesas()); };
@@ -80,7 +80,7 @@ export default function Financeiro() {
     saveTransactions(lista);
     refresh();
     setShowIncome(false);
-    setIncomeForm(incomeFormInit);
+    setIncomeForm(incomeFormInit());
   };
 
   const saveExpense = () => {
@@ -92,7 +92,7 @@ export default function Financeiro() {
     saveTransactions(txnsList);
     refresh();
     setShowExpense(false);
-    setExpenseForm(expenseFormInit);
+    setExpenseForm(expenseFormInit());
     setEditExpense(null);
   };
 
@@ -112,12 +112,12 @@ export default function Financeiro() {
           </div>
           <div className="flex gap-2">
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-              onClick={() => { setIncomeForm(incomeFormInit); setShowIncome(true); }}
+              onClick={() => { setIncomeForm(incomeFormInit()); setShowIncome(true); }}
               className="btn-primary flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg">
               <Plus size={15} /> Entrada
             </motion.button>
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-              onClick={() => { setExpenseForm(expenseFormInit); setEditExpense(null); setShowExpense(true); }}
+              onClick={() => { setExpenseForm(expenseFormInit()); setEditExpense(null); setShowExpense(true); }}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg bg-danger/15 text-danger hover:bg-danger/25 transition-colors">
               <Plus size={15} /> Despesa
             </motion.button>

@@ -84,7 +84,7 @@ body { font-family: var(--font-sans); background: var(--color-bg-main); color: v
   border-radius: var(--radius-sm); color: var(--color-text); padding: 18px 14px 6px;
   font-size: 0.875rem; width: 100%; outline: none; transition: border-color 0.2s;
 }
-.floating-label input:focus, .floating-label textarea:focus { border-color: var(--color-primary); }
+.floating-label input:focus, .floating-label textarea:focus, .floating-label select:focus { border-color: var(--color-primary); }
 .floating-label label {
   position: absolute; top: 14px; left: 14px; font-size: 0.8rem; color: var(--color-text-muted);
   transition: all 0.2s ease; pointer-events: none;
@@ -92,6 +92,13 @@ body { font-family: var(--font-sans); background: var(--color-bg-main); color: v
 .floating-label input:focus + label, .floating-label input:not(:placeholder-shown) + label,
 .floating-label textarea:focus + label, .floating-label textarea:not(:placeholder-shown) + label {
   top: 4px; font-size: 0.6rem; color: var(--color-primary);
+}
+.floating-label select:focus + label,
+.floating-label select + label {
+  top: 4px; font-size: 0.6rem;
+}
+.floating-label select:focus + label {
+  color: var(--color-primary);
 }
 .floating-label .input-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted); }
 .floating-label input.has-icon { padding-left: 38px; }

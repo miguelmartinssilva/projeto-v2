@@ -12,14 +12,14 @@ function hojeISO() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-const emptyForm = { titulo: "", data: hojeISO(), hora: "09:00", tipo: "Reuniao", cliente: "", descricao: "" };
+function emptyForm() { return { titulo: "", data: hojeISO(), hora: "09:00", tipo: "Reuniao", cliente: "", descricao: "" }; }
 
 export default function Agenda() {
   const [events, setEvents] = useState(() => getAgenda());
   const [mes, setMes] = useState(new Date().getMonth());
   const [ano, setAno] = useState(new Date().getFullYear());
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState(emptyForm());
   const [editingId, setEditingId] = useState(null);
   const refresh = () => setEvents(getAgenda());
 
@@ -56,7 +56,7 @@ export default function Agenda() {
     saveAgenda(lista);
     refresh();
     setShowModal(false);
-    setForm(emptyForm);
+    setForm(emptyForm());
     setEditingId(null);
   };
 
@@ -87,7 +87,7 @@ export default function Agenda() {
           <motion.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
-            onClick={() => { setForm(emptyForm); setEditingId(null); setShowModal(true); }}
+            onClick={() => { setForm(emptyForm()); setEditingId(null); setShowModal(true); }}
             className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg"
           >
             <Plus size={16} /> Novo Evento

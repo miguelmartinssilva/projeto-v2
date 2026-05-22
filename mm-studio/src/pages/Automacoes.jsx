@@ -10,12 +10,12 @@ const TIPOS_AUTO = [
   { key: "relatorio",  label: "Relatorio",  desc: "Gera relatorio periodico" },
 ];
 
-const emptyForm = { nome: "", tipo: "lembrete", disparo: "semanal", dias: 1, ativo: true, descricao: "" };
+function emptyForm() { return { nome: "", tipo: "lembrete", disparo: "semanal", dias: 1, ativo: true, descricao: "" }; }
 
 export default function Automacoes() {
   const [autos, setAutos] = useState(() => getAutomacoes());
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState(emptyForm());
   const [editingId, setEditingId] = useState(null);
   const refresh = () => setAutos(getAutomacoes());
 
@@ -28,7 +28,7 @@ export default function Automacoes() {
     saveAutomacoes(lista);
     refresh();
     setShowModal(false);
-    setForm(emptyForm);
+    setForm(emptyForm());
     setEditingId(null);
   };
 
@@ -59,7 +59,7 @@ export default function Automacoes() {
             <p className="text-xs text-text-muted mt-1">Automatize tarefas repetitivas do seu estúdio</p>
           </div>
           <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-            onClick={() => { setForm(emptyForm); setEditingId(null); setShowModal(true); }}
+            onClick={() => { setForm(emptyForm()); setEditingId(null); setShowModal(true); }}
             className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg">
             <Plus size={16} /> Nova Automacao
           </motion.button>
@@ -113,7 +113,7 @@ export default function Automacoes() {
             <div className="flex flex-col items-center justify-center py-16 gap-3">
               <Zap size={40} className="text-text-muted opacity-20" />
               <p className="text-sm text-text-muted">Nenhuma automacao configurada</p>
-              <button onClick={() => { setForm(emptyForm); setEditingId(null); setShowModal(true); }} className="text-xs text-primary hover:underline">Criar primeira automacao</button>
+              <button onClick={() => { setForm(emptyForm()); setEditingId(null); setShowModal(true); }} className="text-xs text-primary hover:underline">Criar primeira automacao</button>
             </div>
           )}
         </div>

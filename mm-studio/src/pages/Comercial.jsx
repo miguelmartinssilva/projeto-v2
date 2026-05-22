@@ -11,12 +11,12 @@ const STAGES = [
   { key: "fechado",   label: "Fechado",    color: "#22c55e", bg: "#22c55e18" },
 ];
 
-const emptyForm = { nome: "", empresa: "", telefone: "", valor: "", stage: "lead", observacao: "" };
+function emptyForm() { return { nome: "", empresa: "", telefone: "", valor: "", stage: "lead", observacao: "" }; }
 
 export default function Comercial() {
   const [deals, setDeals] = useState(() => getComercial());
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState(emptyForm());
   const [editingId, setEditingId] = useState(null);
   const refresh = () => setDeals(getComercial());
 
@@ -33,7 +33,7 @@ export default function Comercial() {
     saveComercial(lista);
     refresh();
     setShowModal(false);
-    setForm(emptyForm);
+    setForm(emptyForm());
     setEditingId(null);
   };
 
@@ -83,7 +83,7 @@ export default function Comercial() {
           <motion.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
-            onClick={() => { setForm(emptyForm); setEditingId(null); setShowModal(true); }}
+            onClick={() => { setForm(emptyForm()); setEditingId(null); setShowModal(true); }}
             className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg"
           >
             <Plus size={16} /> Novo Deal

@@ -7,6 +7,14 @@ import Clients from "./pages/Clients";
 import Finance from "./pages/Finance";
 import History from "./pages/History";
 import Settings from "./pages/Settings";
+import Agenda from "./pages/Agenda";
+import Comercial from "./pages/Comercial";
+import Catalogo from "./pages/Catalogo";
+import Analytics from "./pages/Analytics";
+import Automacoes from "./pages/Automacoes";
+import Equipe from "./pages/Equipe";
+import Documentos from "./pages/Documentos";
+import Integracoes from "./pages/Integracoes";
 
 export default function App() {
   const [collapsed, setCollapsed] = useState(false);
@@ -22,6 +30,14 @@ export default function App() {
           <Route path="/financas" element={<Finance />} />
           <Route path="/historico" element={<History />} />
           <Route path="/configuracoes" element={<Settings />} />
+          <Route path="/agenda" element={<Agenda />} />
+          <Route path="/comercial" element={<Comercial />} />
+          <Route path="/catalogo" element={<Catalogo />} />
+          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/automacoes" element={<Automacoes />} />
+          <Route path="/equipe" element={<Equipe />} />
+          <Route path="/documentos" element={<Documentos />} />
+          <Route path="/integracoes" element={<Integracoes />} />
         </Routes>
       </div>
     </div>

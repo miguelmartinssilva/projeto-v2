@@ -1,18 +1,24 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, FileText, Users, DollarSign, History, Settings, Menu, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { LayoutDashboard, Users, DollarSign, Settings, Menu, X, ChevronLeft, ChevronRight, Calendar, TrendingUp, Package, BarChart3, Zap, UserPlus, FileText as FileDoc, Link2 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const menuItems = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/" },
-  { label: "Orcamento", icon: FileText, path: "/orcamento" },
-  { label: "Clientes", icon: Users, path: "/clientes" },
-  { label: "Financas", icon: DollarSign, path: "/financas" },
-  { label: "Historico", icon: History, path: "/historico" },
+const operationItems = [
+  { label: "Dashboard",  icon: LayoutDashboard, path: "/" },
+  { label: "CRM",        icon: Users,           path: "/clientes" },
+  { label: "Agenda",     icon: Calendar,        path: "/agenda" },
+  { label: "Financas",   icon: DollarSign,      path: "/financas" },
+  { label: "Comercial",  icon: TrendingUp,      path: "/comercial" },
+  { label: "Catalogo",   icon: Package,         path: "/catalogo" },
+  { label: "Analytics",  icon: BarChart3,       path: "/analytics" },
+  { label: "Automacoes", icon: Zap,             path: "/automacoes" },
 ];
 
-const bottomItems = [
-  { label: "Configuracoes", icon: Settings, path: "/configuracoes" },
+const workspaceItems = [
+  { label: "Equipe",       icon: UserPlus,  path: "/equipe" },
+  { label: "Documentos",   icon: FileDoc,   path: "/documentos" },
+  { label: "Integracoes",  icon: Link2,     path: "/integracoes" },
+  { label: "Configuracoes",icon: Settings,  path: "/configuracoes" },
 ];
 
 export default function Sidebar({ collapsed, onToggle }) {
@@ -27,6 +33,17 @@ export default function Sidebar({ collapsed, onToggle }) {
   };
 
   const sidebarWidth = collapsed ? "w-16" : "w-56";
+
+  const NavItem = ({ item }) => (
+    <button
+      onClick={() => linkClick(item.path)}
+      className={`sidebar-item w-full flex items-center ${collapsed ? "justify-center" : "gap-3"} px-4 py-2.5 rounded-lg text-sm ${isActive(item.path) ? "sidebar-item-active" : ""}`}
+      title={collapsed ? item.label : undefined}
+    >
+      <item.icon size={17} className="flex-shrink-0" />
+      {!collapsed && <span className="uppercase tracking-[0.08em] text-xs font-medium truncate">{item.label}</span>}
+    </button>
+  );
 
   return (
     <>
@@ -61,30 +78,18 @@ export default function Sidebar({ collapsed, onToggle }) {
           )}
         </div>
 
-        <nav className="flex-1 py-3 px-2 space-y-0.5">
-          {menuItems.map((item) => (
-            <button
-              key={item.label}
-              onClick={() => linkClick(item.path)}
-              className={`sidebar-item w-full flex items-center ${collapsed ? "justify-center" : "gap-3"} px-4 py-2.5 rounded-lg text-sm ${isActive(item.path) ? "sidebar-item-active" : ""}`}
-              title={collapsed ? item.label : undefined}
-            >
-              <item.icon size={17} className="flex-shrink-0" />
-              {!collapsed && <span className="uppercase tracking-[0.08em] text-xs font-medium">{item.label}</span>}
-            </button>
-          ))}
+        <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
+          <div className="space-y-0.5">
+            {!collapsed && <p className="px-4 py-1.5 text-[9px] uppercase tracking-[0.2em] text-text-muted font-semibold">Operacao</p>}
+            {operationItems.map((item) => <NavItem key={item.label} item={item} />)}
+          </div>
+
           <div className={`my-2 ${collapsed ? "mx-2" : "mx-4"} h-px bg-border-card/50`} />
-          {bottomItems.map((item) => (
-            <button
-              key={item.label}
-              onClick={() => linkClick(item.path)}
-              className={`sidebar-item w-full flex items-center ${collapsed ? "justify-center" : "gap-3"} px-4 py-2.5 rounded-lg text-sm ${isActive(item.path) ? "sidebar-item-active" : ""}`}
-              title={collapsed ? item.label : undefined}
-            >
-              <item.icon size={17} className="flex-shrink-0" />
-              {!collapsed && <span className="uppercase tracking-[0.08em] text-xs font-medium">{item.label}</span>}
-            </button>
-          ))}
+
+          <div className="space-y-0.5">
+            {!collapsed && <p className="px-4 py-1.5 text-[9px] uppercase tracking-[0.2em] text-text-muted font-semibold">Workspace</p>}
+            {workspaceItems.map((item) => <NavItem key={item.label} item={item} />)}
+          </div>
         </nav>
 
         <div className="p-4 border-t border-border-card">

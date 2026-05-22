@@ -10,6 +10,12 @@ const KEYS = {
   DESPESAS: "despesas_miguel",
   FIXOS: "clientes_fixos_miguel",
   PLANOS_FIXOS: "planos_fixos_miguel",
+  AGENDA: "agenda_miguel",
+  COMERCIAL: "comercial_miguel",
+  CATALOGO: "catalogo_miguel",
+  EQUIPE: "equipe_miguel",
+  AUTOMACOES: "automacoes_miguel",
+  DOCUMENTOS: "documentos_miguel",
 };
 
 function get(key, fallback) {
@@ -150,3 +156,25 @@ const PLANOS_PADRAO = {
 };
 export const getPlanosFixos = () => get(KEYS.PLANOS_FIXOS, PLANOS_PADRAO);
 export const savePlanosFixos = (planos) => set(KEYS.PLANOS_FIXOS, planos);
+
+export const getAgenda = () => get(KEYS.AGENDA, []);
+export const saveAgenda = (lista) => set(KEYS.AGENDA, lista);
+
+export const getComercial = () => get(KEYS.COMERCIAL, []);
+export const saveComercial = (lista) => set(KEYS.COMERCIAL, lista);
+
+export const getCatalogo = () => get(KEYS.CATALOGO, []);
+export const saveCatalogo = (lista) => set(KEYS.CATALOGO, lista);
+
+export const getEquipe = () => get(KEYS.EQUIPE, [
+  { id: 1, nome: "Miguel Martins", cargo: "Designer / CEO", email: "miguel@mmstudio.com", telefone: "(11) 99999-0001", avatar: "MM", cor: "#00e676", ativo: true },
+  { id: 2, nome: "Ana Silva", cargo: "Social Media", email: "ana@mmstudio.com", telefone: "(11) 99999-0002", avatar: "AS", cor: "#7c3aed", ativo: true },
+  { id: 3, nome: "Carlos Oliveira", cargo: "Video Editor", email: "carlos@mmstudio.com", telefone: "(11) 99999-0003", avatar: "CO", cor: "#448aff", ativo: false },
+]);
+export const saveEquipe = (lista) => set(KEYS.EQUIPE, lista);
+
+export const getAutomacoes = () => get(KEYS.AUTOMACOES, []);
+export const saveAutomacoes = (lista) => set(KEYS.AUTOMACOES, lista);
+
+export const getDocumentos = () => get(KEYS.DOCUMENTOS, []);
+export const saveDocumentos = (lista) => set(KEYS.DOCUMENTOS, lista);

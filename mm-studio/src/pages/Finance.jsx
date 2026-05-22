@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { DollarSign, TrendingDown, PiggyBank, Clock, ArrowUpRight, ArrowDownRight, Check, Plus, Edit3, Trash2, X, RefreshCw, ArrowUpDown, BadgePercent, Star } from "lucide-react";
+import { DollarSign, TrendingDown, PiggyBank, Clock, ArrowUpRight, ArrowDownRight, Check, Plus, Edit3, Trash2, X, RefreshCw, ArrowUpDown, BadgePercent, Star, TrendingUp } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { getTransactions, saveTransactions, getDespesas, saveDespesa, deleteDespesa, getFixos } from "../utils/storage";
 
@@ -49,6 +49,8 @@ export default function Finance() {
 
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [editExpense, setEditExpense] = useState(null);
+  const [showIncomeModal, setShowIncomeModal] = useState(false);
+  const [incomeForm, setIncomeForm] = useState({ cliente: "", valor: "", categoria: "Design", data: new Date().toISOString().slice(0, 10) });
   const [filterMes, setFilterMes] = useState(curMonth);
   const [filterAno, setFilterAno] = useState(curYear);
   const [filterCat, setFilterCat] = useState("Todas");
@@ -212,6 +214,17 @@ export default function Finance() {
             <p className="text-xs text-text-muted mb-1 tracking-wide">MM Studio <span className="mx-1.5 text-border-light">/</span> <span className="text-text-secondary font-medium">Financas</span></p>
             <h1 className="text-xl font-display font-bold text-text">Financas</h1>
           </div>
+          <div className="flex items-center gap-2">
+            <motion.button onClick={() => { setIncomeForm({ cliente: "", valor: "", categoria: "Design", data: new Date().toISOString().slice(0, 10) }); setShowIncomeModal(true); }}
+              whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+              className="bg-primary text-black flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/80 transition-colors">
+              <TrendingUp size={18} /> Entrada
+            </motion.button>
+            <motion.button onClick={openNewExpense} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+              className="bg-danger text-white flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-danger/80 transition-colors">
+              <Plus size={18} /> Despesa
+            </motion.button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -319,10 +332,6 @@ export default function Finance() {
             <h2 className="text-lg font-display font-bold text-text">Despesas</h2>
             <p className="text-xs text-text-muted">Gerenciamento de saidas financeiras</p>
           </div>
-          <motion.button onClick={openNewExpense} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-            className="bg-danger text-white flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-danger/80 transition-colors">
-            <Plus size={18} /> Nova Despesa
-          </motion.button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -446,6 +455,12 @@ export default function Finance() {
       </div>
 
       <AnimatePresence>
+        {showIncomeModal && (
+          <IncomeModal form={incomeForm} setForm={setIncomeForm} onClose={() => setShowIncomeModal(false)} />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
         {showExpenseModal && (
           <ExpenseModal item={editExpense} onClose={() => setShowExpenseModal(false)} />
         )}
@@ -542,6 +557,65 @@ function ExpenseModal({ item, onClose }) {
           <div className="flex gap-3 pt-2">
             <button onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-border-card text-text-secondary hover:text-text transition-colors text-sm">Cancelar</button>
             <button onClick={handleSave} className="flex-1 py-2.5 rounded-lg bg-danger text-white hover:bg-danger/80 transition-colors text-sm font-semibold">Salvar Despesa</button>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function IncomeModal({ form, setForm, onClose }) {
+  const handleSave = () => {
+    if (!form.cliente.trim() || !form.valor) return;
+    const numVal = parseFloat(form.valor);
+    if (isNaN(numVal) || numVal <= 0) return;
+    const obj = {
+      id: Date.now(),
+      tipo: "entrada",
+      cliente: form.cliente.trim(),
+      categoria: form.categoria,
+      valor: numVal,
+      data: form.data,
+      status: "pago",
+    };
+    const txns = getTransactions();
+    saveTransactions([obj, ...txns]);
+    onClose();
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+      <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }} className="bg-bg-card rounded-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-lg font-display font-bold text-text">Registrar Entrada</h2>
+          <button onClick={onClose} className="text-text-muted hover:text-text p-1"><X size={18} /></button>
+        </div>
+        <div className="space-y-4">
+          <div>
+            <label className="text-xs font-medium text-text-secondary uppercase tracking-[0.08em] mb-1.5 block">Cliente / Servico</label>
+            <input type="text" value={form.cliente} onChange={(e) => setForm({ ...form, cliente: e.target.value })} placeholder="Ex: Logo para Joao"
+              className="w-full bg-bg-elevated border border-border-card rounded-lg px-3.5 py-2.5 text-sm text-text placeholder-text-muted outline-none focus:border-primary/50 transition-colors" />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-text-secondary uppercase tracking-[0.08em] mb-1.5 block">Valor (R$)</label>
+            <input type="number" step="0.01" min="0" value={form.valor} onChange={(e) => setForm({ ...form, valor: e.target.value })} placeholder="0,00"
+              className="w-full bg-bg-elevated border border-border-card rounded-lg px-3.5 py-2.5 text-sm text-text placeholder-text-muted outline-none focus:border-primary/50 transition-colors" />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-text-secondary uppercase tracking-[0.08em] mb-1.5 block">Categoria</label>
+            <select value={form.categoria} onChange={(e) => setForm({ ...form, categoria: e.target.value })}
+              className="w-full bg-bg-elevated border border-border-card rounded-lg px-3.5 py-2.5 text-sm text-text outline-none focus:border-primary/50 transition-colors">
+              {["Design", "Social Media", "Video", "Evento", "Site", "Consultoria", "Outros"].map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-text-secondary uppercase tracking-[0.08em] mb-1.5 block">Data</label>
+            <input type="date" value={form.data} onChange={(e) => setForm({ ...form, data: e.target.value })}
+              className="w-full bg-bg-elevated border border-border-card rounded-lg px-3.5 py-2.5 text-sm text-text outline-none focus:border-primary/50 transition-colors" />
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-border-card text-text-secondary hover:text-text transition-colors text-sm">Cancelar</button>
+            <button onClick={handleSave} className="flex-1 py-2.5 rounded-lg bg-primary text-black hover:bg-primary/80 transition-colors text-sm font-semibold">Salvar Entrada</button>
           </div>
         </div>
       </motion.div>

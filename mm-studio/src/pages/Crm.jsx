@@ -5,7 +5,9 @@ import { getClientes, saveClientes, getHistorico } from "../utils/storage";
 
 const statusColors = { ativo: "bg-success", pendente: "bg-pending", inativo: "bg-text-muted" };
 const statusLabels = { ativo: "Ativo", pendente: "Pendente", inativo: "Inativo" };
-const emptyForm = { nome: "", empresa: "", telefone: "", email: "", instagram: "", status: "pendente" };
+const tipoLabels = { avulso: "Avulso", mensal: "Mensal", pacote: "Pacote", projeto: "Projeto", retainer: "Retainer" };
+const tipoColors = { avulso: "bg-text-muted/15 text-text-muted", mensal: "bg-primary/15 text-primary", pacote: "bg-purple-500/15 text-purple-400", projeto: "bg-blue-500/15 text-blue-400", retainer: "bg-amber/15 text-amber" };
+const emptyForm = { nome: "", empresa: "", telefone: "", email: "", instagram: "", status: "pendente", tipo: "avulso" };
 
 export default function Crm() {
   const [raw, setRaw] = useState(() => getClientes());
@@ -49,7 +51,7 @@ export default function Crm() {
     setEditId(null);
   };
 
-  const openEdit = (c) => { setForm({ ...emptyForm, nome: c.nome || "", empresa: c.empresa || "", telefone: c.telefone || "", email: c.email || "", instagram: c.instagram || "", status: c.status || "pendente" }); setEditId(c.id); setDialog(true); };
+  const openEdit = (c) => { setForm({ ...emptyForm, nome: c.nome || "", empresa: c.empresa || "", telefone: c.telefone || "", email: c.email || "", instagram: c.instagram || "", status: c.status || "pendente", tipo: c.tipo || "avulso" }); setEditId(c.id); setDialog(true); };
 
   const del = (id) => {
     try {
@@ -114,7 +116,8 @@ export default function Crm() {
                 <tr className="text-text-muted text-[10px] uppercase tracking-[0.12em] border-b border-border-card">
                   <th className="text-left pb-3 px-4 pt-2 font-semibold">Cliente</th>
                   <th className="text-left pb-3 px-4 pt-2 font-semibold">Contato</th>
-                  <th className="text-left pb-3 px-4 pt-2 font-semibold">Status</th>
+                  <th className="text-left pb-3 px-4 pt-2 font-semibold">Tipo</th>
+<th className="text-left pb-3 px-4 pt-2 font-semibold">Status</th>
                   <th className="text-right pb-3 px-4 pt-2 font-semibold">Orcamentos</th>
                   <th className="text-right pb-3 px-4 pt-2 font-semibold">Total</th>
                   <th className="text-right pb-3 px-4 pt-2 font-semibold">Acoes</th>
@@ -139,10 +142,13 @@ export default function Crm() {
                       <div className="space-y-0.5">
                         {c.telefone && <p className="text-xs text-text-muted flex items-center gap-1"><Phone size={10} />{c.telefone}</p>}
                         {c.email && <p className="text-xs text-text-muted flex items-center gap-1"><Mail size={10} />{c.email}</p>}
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold ${c.status === "ativo" ? "bg-success/15 text-success" : c.status === "pendente" ? "bg-pending/15 text-pending" : "bg-text-muted/15 text-text-muted"}`}>
+</div>
+</td>
+<td className="py-3 px-4">
+<span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold ${tipoColors[c.tipo] || tipoColors.avulso}`}>{tipoLabels[c.tipo] || "Avulso"}</span>
+</td>
+<td className="py-3 px-4">
+<span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold ${c.status === "ativo" ? "bg-success/15 text-success" : c.status === "pendente" ? "bg-pending/15 text-pending" : "bg-text-muted/15 text-text-muted"}`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${statusColors[c.status] || "bg-text-muted"}`} />
                         {statusLabels[c.status] || "Inativo"}
                       </span>
@@ -186,6 +192,13 @@ export default function Crm() {
                 <div className="floating-label"><input type="text" placeholder=" " value={form.telefone} onChange={e => setForm(f => ({ ...f, telefone: e.target.value }))} className="has-icon" /><Phone size={14} className="input-icon" /><label>Telefone</label></div>
                 <div className="floating-label"><input type="email" placeholder=" " value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className="has-icon" /><Mail size={14} className="input-icon" /><label>Email</label></div>
                 <div className="floating-label"><input type="text" placeholder=" " value={form.instagram} onChange={e => setForm(f => ({ ...f, instagram: e.target.value }))} className="has-icon" /><MessageCircle size={14} className="input-icon" /><label>Instagram</label></div>
+        <div><span className="field-label">Tipo de cliente</span><select value={form.tipo} onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))} className="w-full bg-bg-input border border-border-card rounded-lg px-3 py-2.5 text-sm text-text outline-none focus:border-primary">
+          <option value="avulso">Avulso</option>
+          <option value="mensal">Mensal</option>
+          <option value="pacote">Pacote</option>
+          <option value="projeto">Projeto</option>
+          <option value="retainer">Retainer</option>
+        </select></div>
         <div><span className="field-label">Status</span><select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} className="w-full bg-bg-input border border-border-card rounded-lg px-3 py-2.5 text-sm text-text outline-none focus:border-primary">
           <option value="ativo">Ativo</option>
           <option value="pendente">Pendente</option>

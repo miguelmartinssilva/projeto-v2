@@ -11,9 +11,16 @@ export default function Catalogo() {
   const [servicos, setServicos] = useState(() => getServicos());
   const [pacotes, setPacotes] = useState(() => getPacotes());
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState(emptyServico);
+  const [form, setForm] = useState(tab === "servicos" ? emptyServico : emptyPacote);
   const [editingId, setEditingId] = useState(null);
   const refresh = () => { setServicos(getServicos()); setPacotes(getPacotes()); };
+
+  const switchTab = (t) => {
+    setTab(t);
+    setForm(t === "servicos" ? { ...emptyServico } : { ...emptyPacote });
+    setEditingId(null);
+    setShowModal(false);
+  };
 
   const save = () => {
     if (tab === "servicos") {
@@ -31,13 +38,13 @@ export default function Catalogo() {
     }
     refresh();
     setShowModal(false);
-    setForm(tab === "servicos" ? emptyServico : emptyPacote);
+    setForm(tab === "servicos" ? { ...emptyServico } : { ...emptyPacote });
     setEditingId(null);
   };
 
   const openEdit = (item) => {
-    if (tab === "servicos") { setForm({ nome: item.nome, unidade: item.unidade, preco: String(item.preco) }); }
-    else { setForm({ nome: item.nome, servico: item.servico, qtd: item.qtd, precoTotal: String(item.precoTotal), descricao: item.descricao || "" }); }
+    if (tab === "servicos") { setForm({ ...emptyServico, nome: item.nome, unidade: item.unidade, preco: String(item.preco) }); }
+    else { setForm({ ...emptyPacote, nome: item.nome, servico: item.servico, qtd: item.qtd, precoTotal: String(item.precoTotal), descricao: item.descricao || "" }); }
     setEditingId(item.id);
     setShowModal(true);
   };
@@ -62,7 +69,7 @@ export default function Catalogo() {
           </div>
           <motion.button
             whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-            onClick={() => { setForm(tab === "servicos" ? emptyServico : emptyPacote); setEditingId(null); setShowModal(true); }}
+            onClick={() => { setForm(tab === "servicos" ? { ...emptyServico } : { ...emptyPacote }); setEditingId(null); setShowModal(true); }}
             className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg"
           >
             <Plus size={16} /> Adicionar
@@ -71,7 +78,7 @@ export default function Catalogo() {
 
         <div className="flex gap-2 mb-6">
           {["servicos", "pacotes"].map(t => (
-            <button key={t} onClick={() => setTab(t)}
+            <button key={t} onClick={() => switchTab(t)}
               className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${tab === t ? "btn-primary" : "bg-white/[0.04] text-text-muted hover:text-text hover:bg-white/[0.08]"}`}>
               {t === "servicos" ? "Servicos" : "Pacotes"}
             </button>

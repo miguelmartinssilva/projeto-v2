@@ -36,20 +36,27 @@ export default function Crm() {
   const save = () => {
     if (!form.nome.trim()) return;
     const lista = getClientes();
-    if (editId) { const idx = lista.findIndex(c => c.id === editId); if (idx >= 0) lista[idx] = { id: editId, ...form }; }
-    else lista.push({ id: Date.now(), ...form });
+    if (editId) {
+      const idx = lista.findIndex(c => String(c.id) === String(editId));
+      if (idx >= 0) lista[idx] = { ...form, id: editId };
+    } else {
+      lista.push({ ...form, id: Date.now() });
+    }
     saveClientes(lista);
     refresh();
     setDialog(false);
-    setForm(emptyForm);
+    setForm({ ...emptyForm });
     setEditId(null);
   };
 
-  const openEdit = (c) => { setForm({ nome: c.nome, empresa: c.empresa || "", telefone: c.telefone || "", email: c.email || "", instagram: c.instagram || "", status: c.status }); setEditId(c.id); setDialog(true); };
+  const openEdit = (c) => { setForm({ ...emptyForm, nome: c.nome || "", empresa: c.empresa || "", telefone: c.telefone || "", email: c.email || "", instagram: c.instagram || "", status: c.status || "pendente" }); setEditId(c.id); setDialog(true); };
 
   const del = (id) => {
-    saveClientes(getClientes().filter(c => c.id !== id));
-    refresh();
+    try {
+      const lista = getClientes().filter(c => String(c.id) !== String(id));
+      saveClientes(lista);
+      refresh();
+    } catch { /* ignore */ }
   };
 
   return (
@@ -62,7 +69,7 @@ export default function Crm() {
             <p className="text-xs text-text-muted mt-1">Gerencie seus clientes e relacionamentos</p>
           </div>
           <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-            onClick={() => { setForm(emptyForm); setEditId(null); setDialog(true); }}
+            onClick={() => { setForm({ ...emptyForm }); setEditId(null); setDialog(true); }}
             className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg">
             <Plus size={16} /> Novo Cliente
           </motion.button>

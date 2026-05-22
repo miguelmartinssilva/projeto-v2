@@ -452,6 +452,44 @@ export default function Finance() {
             </div>
           </motion.div>
         </div>
+
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-bg-card rounded-xl p-6 card-border glow-primary mb-6">
+          <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-text mb-4">Ultimas Transacoes</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-text-muted text-[11px] uppercase tracking-[0.1em] border-b border-border-card">
+                  <th className="text-left pb-3 pl-1 font-medium">Data</th>
+                  <th className="text-left pb-3 font-medium">Descricao</th>
+                  <th className="text-left pb-3 font-medium">Tipo</th>
+                  <th className="text-right pb-3 pr-1 font-medium">Valor</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(() => {
+                  const all = [
+                    ...getTransactions().filter(t => t.tipo === "entrada"),
+                    ...getDespesas().map(d => ({ ...d, tipo: "saida" })),
+                  ].sort((a, b) => new Date(b.data) - new Date(a.data)).slice(0, 10);
+                  return all.map(t => (
+                    <tr key={t.id} className="border-b border-border-card/30 last:border-0 transition-colors hover:bg-white/[0.02]">
+                      <td className="py-3 pl-1 text-text-muted text-xs">{t.data}</td>
+                      <td className="py-3 text-text font-medium">{t.cliente || t.descricao || "—"}</td>
+                      <td className="py-3">
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold ${t.tipo === "entrada" ? "bg-success/15 text-success" : "bg-danger/15 text-danger"}`}>
+                          {t.tipo === "entrada" ? "Entrada" : "Saida"}
+                        </span>
+                      </td>
+                      <td className={`py-3 pr-1 text-right font-display font-semibold text-sm ${t.tipo === "entrada" ? "text-success" : "text-danger"}`}>
+                        {t.tipo === "entrada" ? "+" : "-"}R$ {(t.valor || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                      </td>
+                    </tr>
+                  ));
+                })()}
+              </tbody>
+            </table>
+          </div>
+        </motion.div>
       </div>
 
       <AnimatePresence>

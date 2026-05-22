@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Plus, FileText, MessageCircle, Palette, Layers, Star, Trash2 } from "lucide-react";
 import { getServicos, getPacotes, getPerfilAtivo, saveHistorico, getProximoNumero } from "../utils/storage";
 import { jsPDF } from "jspdf";
@@ -305,8 +305,9 @@ export default function Proposals() {
                 </motion.button>
               </div>
               <div className="space-y-2">
+                <AnimatePresence>
                 {items.map((item, i) => (
-                  <div key={i} className="flex items-center gap-2 p-2.5 bg-bg-elevated rounded-lg border border-border-card/50">
+                  <motion.div key={i} layout exit={{ opacity: 0, x: 40, height: 0, marginBottom: 0, transition: { duration: 0.2 } }} className="flex items-center gap-2 p-2.5 bg-bg-elevated rounded-lg border border-border-card/50">
                     <input
                       className="flex-1 bg-transparent border-none outline-none text-sm text-text placeholder-text-muted min-w-0"
                       placeholder="Descricao do servico"
@@ -331,8 +332,9 @@ export default function Proposals() {
                       R$ {(item.qtd * item.unit).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                     </span>
                     <button onClick={() => removeItem(i)} className="text-text-muted hover:text-danger transition-colors p-1"><Trash2 size={14} /></button>
-                  </div>
+                  </motion.div>
                 ))}
+                </AnimatePresence>
               </div>
             </motion.div>
 

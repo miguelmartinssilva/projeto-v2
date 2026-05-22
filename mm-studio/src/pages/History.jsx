@@ -31,6 +31,7 @@ export default function History() {
   const [viewItem, setViewItem] = useState(null);
   const [viewStatus, setViewStatus] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const { proposals, rawItems, totalCount } = useMemo(() => {
@@ -151,10 +152,14 @@ export default function History() {
 
   const confirmDeleteAction = () => {
     if (!confirmDelete) return;
-    const raw = rawItems.find(r => (r.numero || `#${r.id}`) === confirmDelete.id);
-    if (raw) deleteHistorico(raw.id);
-    setConfirmDelete(null);
-    setRefreshKey(k => k + 1);
+    setDeletingId(confirmDelete.id);
+    setTimeout(() => {
+      const raw = rawItems.find(r => (r.numero || `#${r.id}`) === confirmDelete.id);
+      if (raw) deleteHistorico(raw.id);
+      setDeletingId(null);
+      setConfirmDelete(null);
+      setRefreshKey(k => k + 1);
+    }, 250);
   };
 
   return (
@@ -210,11 +215,12 @@ export default function History() {
                 </tr>
               </thead>
               <tbody>
+                <AnimatePresence>
                 {filtered.map((p, i) => {
                   const cfg = STATUS_MAP[p.status === "aprovado" ? "aprovada" : p.status === "cancelado" ? "recusada" : p.status];
                   const Icon = cfg.icon;
                   return (
-                    <tr key={`${p.id}-${i}`} className="border-b border-border-card/30 transition-colors hover:bg-white/[0.02] group">
+                    <motion.tr key={`${p.id}-${i}`} layout exit={{ opacity: 0, x: 60, scale: 0.95, transition: { duration: 0.2 } }} className="border-b border-border-card/30 transition-colors hover:bg-white/[0.02] group">
                       <td className="px-4 py-3.5 text-text-muted font-mono text-xs">{p.id}</td>
                       <td className="px-4 py-3.5">
                         <div className="flex items-center gap-2.5">
@@ -239,9 +245,10 @@ export default function History() {
                           <button onClick={() => handleDelete(p)} className="p-1.5 rounded-lg hover:bg-white/5 text-text-muted hover:text-danger transition-colors" title="Excluir"><Trash2 size={14} /></button>
                         </div>
                       </td>
-                    </tr>
+                    </motion.tr>
                   );
                 })}
+                </AnimatePresence>
               </tbody>
             </table>
           </div>
@@ -323,8 +330,8 @@ export default function History() {
               <h2 className="text-lg font-display font-bold text-text mb-2">Excluir Orcamento?</h2>
               <p className="text-sm text-text-muted mb-5">Esta acao nao pode ser desfeita.</p>
               <div className="flex gap-3">
-                <button onClick={() => setConfirmDelete(null)} className="flex-1 py-2.5 rounded-lg border border-border-card text-text-secondary hover:text-text transition-colors text-sm">Cancelar</button>
-                <button onClick={confirmDeleteAction} className="flex-1 py-2.5 rounded-lg bg-danger text-white hover:bg-danger/80 transition-colors text-sm font-semibold">Excluir</button>
+                <button onClick={() => { if (!deletingId) setConfirmDelete(null); }} className="flex-1 py-2.5 rounded-lg border border-border-card text-text-secondary hover:text-text transition-colors text-sm">Cancelar</button>
+                <button onClick={confirmDeleteAction} disabled={!!deletingId} className="flex-1 py-2.5 rounded-lg bg-danger text-white hover:bg-danger/80 transition-colors text-sm font-semibold disabled:opacity-50">{deletingId ? "Deletando..." : "Excluir"}</button>
               </div>
             </motion.div>
           </motion.div>

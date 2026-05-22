@@ -68,14 +68,24 @@ export default function FixedClients() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <AnimatePresence>
         {activeClients.map(c => {
           const plan = planos[c.plano] || planos.basico;
           const now = new Date();
           const mk = mesKey(now);
           const fin = (c.historicoFinanceiro || []).find(h => h.mes === mk);
           const pago = fin?.status === "pago";
+          const handleCardDelete = (e) => {
+            e.stopPropagation();
+            const el = e.currentTarget.closest('[data-delete-id]');
+            if (el) el.dataset.deleting = "true";
+            setTimeout(() => {
+              if (confirm(`Excluir ${c.nome}?`)) { deleteFixo(c.id); setSelected(s => s?.id === c.id ? null : s); refresh(); }
+            }, 50);
+          };
           return (
-            <motion.div key={c.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            <motion.div key={c.id} data-delete-id={c.id} layout exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
               onClick={() => setSelected(selected?.id === c.id ? null : c)}
               className={`p-4 rounded-xl border cursor-pointer transition-all ${selected?.id === c.id ? "bg-amber/10 border-amber" : "bg-bg-card border-border-card hover:border-border-light"}`}>
               <div className="flex items-start gap-3">
@@ -97,12 +107,13 @@ export default function FixedClients() {
                 </div>
                 <button onClick={(e) => { e.stopPropagation(); setSelected(selected?.id === c.id ? null : c); }}
                   className="text-xs text-amber hover:underline flex-shrink-0 mt-1">Detalhes</button>
-                <button onClick={(e) => { e.stopPropagation(); if (confirm(`Excluir ${c.nome}?`)) { deleteFixo(c.id); setSelected(s => s?.id === c.id ? null : s); refresh(); } }}
+                <button onClick={handleCardDelete}
                   className="text-xs text-danger hover:underline flex-shrink-0 mt-1"><Trash2 size={12} className="inline" /></button>
               </div>
             </motion.div>
           );
         })}
+        </AnimatePresence>
         {activeClients.length === 0 && (
           <div className="col-span-2 flex flex-col items-center justify-center py-16 text-text-muted">
             <Star size={36} className="mb-3 opacity-20" />
@@ -164,7 +175,7 @@ function ClienteFixoPanel({ cliente, onClose, onUpdate, planos }) {
               <div className="flex items-center gap-2">
                 {saved && <span className="text-xs text-success font-semibold">Salvo</span>}
                 <button onClick={() => { if (confirm(`Excluir ${cliente.nome}?`)) { deleteFixo(cliente.id); onClose(); } }}
-                  className="text-text-muted hover:text-danger p-1"><Trash2 size={16} /></button>
+                  className="text-text-muted hover:text-danger p-1 transition-transform active:scale-90"><Trash2 size={16} /></button>
                 <button onClick={onClose} className="text-text-muted hover:text-text p-1"><X size={18} /></button>
               </div>
             </div>

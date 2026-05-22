@@ -5,7 +5,6 @@ import Dashboard from "./pages/Dashboard";
 import Proposals from "./pages/Proposals";
 import Clients from "./pages/Clients";
 import Finance from "./pages/Finance";
-import Expenses from "./pages/Expenses";
 import History from "./pages/History";
 import Settings from "./pages/Settings";
 
@@ -20,8 +19,7 @@ export default function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/orcamento" element={<Proposals />} />
           <Route path="/clientes" element={<Clients />} />
-          <Route path="/financeiro" element={<Finance />} />
-          <Route path="/despesas" element={<Expenses />} />
+          <Route path="/financas" element={<Finance />} />
           <Route path="/historico" element={<History />} />
           <Route path="/configuracoes" element={<Settings />} />
         </Routes>

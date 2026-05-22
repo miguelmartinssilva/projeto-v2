@@ -203,12 +203,9 @@ export default function Comercial() {
                   <DollarSign size={14} className="input-icon" />
                   <label>Valor estimado</label>
                 </div>
-                <div className="floating-label">
-                  <select value={form.stage} onChange={e => setForm(f => ({ ...f, stage: e.target.value }))}>
-                    {STAGES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
-                  </select>
-                  <label>Estagio</label>
-                </div>
+        <div><span className="field-label">Estagio</span><select value={form.stage} onChange={e => setForm(f => ({ ...f, stage: e.target.value }))} className="w-full bg-bg-input border border-border-card rounded-lg px-3 py-2.5 text-sm text-text outline-none focus:border-primary">
+          {STAGES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+        </select></div>
                 <div className="floating-label">
                   <textarea rows={2} placeholder=" " value={form.observacao} onChange={e => setForm(f => ({ ...f, observacao: e.target.value }))} />
                   <label>Observacao</label>

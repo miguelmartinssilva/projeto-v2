@@ -131,12 +131,9 @@ export default function Documentos() {
                   <input type="text" placeholder=" " value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))} />
                   <label>Nome do documento</label>
                 </div>
-                <div className="floating-label">
-                  <select value={form.categoria} onChange={e => setForm(f => ({ ...f, categoria: e.target.value }))}>
-                    {CATS.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                  <label>Categoria</label>
-                </div>
+        <div><span className="field-label">Categoria</span><select value={form.categoria} onChange={e => setForm(f => ({ ...f, categoria: e.target.value }))} className="w-full bg-bg-input border border-border-card rounded-lg px-3 py-2.5 text-sm text-text outline-none focus:border-primary">
+          {CATS.map(c => <option key={c} value={c}>{c}</option>)}
+        </select></div>
                 <div className="floating-label">
                   <textarea rows={2} placeholder=" " value={form.descricao} onChange={e => setForm(f => ({ ...f, descricao: e.target.value }))} />
                   <label>Descricao</label>

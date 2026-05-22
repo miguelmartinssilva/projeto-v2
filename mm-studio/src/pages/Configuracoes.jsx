@@ -85,31 +85,25 @@ export default function Configuracoes() {
             )}
 
             {tab === "pagamento" && (
-              <div className="space-y-4">
-                <div className="floating-label">
-                  <select value={form.pixTipo || "cpf"} onChange={e => setForm(f => ({ ...f, pixTipo: e.target.value }))}>
-                    <option value="cpf">CPF</option><option value="cnpj">CNPJ</option><option value="email">Email</option><option value="telefone">Telefone</option><option value="aleatoria">Chave aleatoria</option>
-                  </select>
-                  <label>Tipo de chave PIX</label>
-                </div>
+          <div className="space-y-4">
+            <div><span className="field-label">Tipo de chave PIX</span><select value={form.pixTipo || "cpf"} onChange={e => setForm(f => ({ ...f, pixTipo: e.target.value }))} className="w-full bg-bg-input border border-border-card rounded-lg px-3 py-2.5 text-sm text-text outline-none focus:border-primary">
+              <option value="cpf">CPF</option><option value="cnpj">CNPJ</option><option value="email">Email</option><option value="telefone">Telefone</option><option value="aleatoria">Chave aleatoria</option>
+            </select></div>
                 <div className="floating-label"><input type="text" placeholder=" " value={form.pixChave} onChange={e => setForm(f => ({ ...f, pixChave: e.target.value }))} /><label>Chave PIX</label></div>
               </div>
             )}
 
             {tab === "aparencia" && (
-              <div className="space-y-4">
-                <div className="floating-label">
-                  <input type="color" value={form.cor || "#00e676"} onChange={e => setForm(f => ({ ...f, cor: e.target.value }))} className="h-10 p-1" />
-                  <label>Cor primaria</label>
-                </div>
+          <div className="space-y-4">
+            <div><span className="field-label">Cor primaria</span><input type="color" value={form.cor || "#00e676"} onChange={e => setForm(f => ({ ...f, cor: e.target.value }))} className="w-full h-10 bg-bg-input border border-border-card rounded-lg p-1 cursor-pointer" /></div>
               </div>
             )}
 
             {tab === "seguranca" && (
-              <div className="space-y-4">
-                <div className="floating-label"><input type="password" placeholder=" " /><label>Senha atual</label></div>
-                <div className="floating-label"><input type="password" placeholder=" " /><label>Nova senha</label></div>
-                <div className="floating-label"><input type="password" placeholder=" " /><label>Confirmar nova senha</label></div>
+          <div className="space-y-4">
+            <div><span className="field-label">Senha atual</span><input type="password" placeholder="Senha atual" className="w-full bg-bg-input border border-border-card rounded-lg px-3 py-2.5 text-sm text-text outline-none focus:border-primary" /></div>
+            <div><span className="field-label">Nova senha</span><input type="password" placeholder="Nova senha" className="w-full bg-bg-input border border-border-card rounded-lg px-3 py-2.5 text-sm text-text outline-none focus:border-primary" /></div>
+            <div><span className="field-label">Confirmar nova senha</span><input type="password" placeholder="Confirmar nova senha" className="w-full bg-bg-input border border-border-card rounded-lg px-3 py-2.5 text-sm text-text outline-none focus:border-primary" /></div>
               </div>
             )}
           </div>

@@ -141,16 +141,13 @@ export default function Catalogo() {
                 </div>
                 {tab === "servicos" ? (
                   <>
-                    <div className="floating-label">
-                      <select value={form.unidade} onChange={e => setForm(f => ({ ...f, unidade: e.target.value }))}>
-                        <option value="por arte">por arte</option>
-                        <option value="por hora">por hora</option>
-                        <option value="por video">por video</option>
-                        <option value="por pacote">por pacote</option>
-                        <option value="por projeto">por projeto</option>
-                      </select>
-                      <label>Unidade</label>
-                    </div>
+            <div><span className="field-label">Unidade</span><select value={form.unidade} onChange={e => setForm(f => ({ ...f, unidade: e.target.value }))} className="w-full bg-bg-input border border-border-card rounded-lg px-3 py-2.5 text-sm text-text outline-none focus:border-primary">
+              <option value="por arte">por arte</option>
+              <option value="por hora">por hora</option>
+              <option value="por video">por video</option>
+              <option value="por pacote">por pacote</option>
+              <option value="por projeto">por projeto</option>
+            </select></div>
                     <div className="floating-label">
                       <input type="number" placeholder=" " value={form.preco} onChange={e => setForm(f => ({ ...f, preco: e.target.value }))} className="has-icon" />
                       <DollarSign size={14} className="input-icon" />
@@ -159,13 +156,10 @@ export default function Catalogo() {
                   </>
                 ) : (
                   <>
-                    <div className="floating-label">
-                      <select value={form.servico} onChange={e => setForm(f => ({ ...f, servico: e.target.value }))}>
-                        <option value="">Selecione</option>
-                        {servicos.map(s => <option key={s.id} value={s.nome}>{s.nome}</option>)}
-                      </select>
-                      <label>Servico base</label>
-                    </div>
+            <div><span className="field-label">Servico base</span><select value={form.servico} onChange={e => setForm(f => ({ ...f, servico: e.target.value }))} className="w-full bg-bg-input border border-border-card rounded-lg px-3 py-2.5 text-sm text-text outline-none focus:border-primary">
+              <option value="">Selecione</option>
+              {servicos.map(s => <option key={s.id} value={s.nome}>{s.nome}</option>)}
+            </select></div>
                     <div className="floating-label">
                       <input type="number" placeholder=" " value={form.qtd} onChange={e => setForm(f => ({ ...f, qtd: parseInt(e.target.value) || 1 }))} />
                       <label>Quantidade</label>

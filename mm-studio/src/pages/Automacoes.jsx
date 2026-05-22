@@ -132,20 +132,14 @@ export default function Automacoes() {
                   <input type="text" placeholder=" " value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))} />
                   <label>Nome da automacao</label>
                 </div>
-                <div className="floating-label">
-                  <select value={form.tipo} onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))}>
-                    {TIPOS_AUTO.map(t => <option key={t.key} value={t.key}>{t.label} — {t.desc}</option>)}
-                  </select>
-                  <label>Tipo</label>
-                </div>
-                <div className="floating-label">
-                  <select value={form.disparo} onChange={e => setForm(f => ({ ...f, disparo: e.target.value }))}>
-                    <option value="diario">Diario</option>
-                    <option value="semanal">Semanal</option>
-                    <option value="personalizado">Personalizado</option>
-                  </select>
-                  <label>Frequencia</label>
-                </div>
+        <div><span className="field-label">Tipo</span><select value={form.tipo} onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))} className="w-full bg-bg-input border border-border-card rounded-lg px-3 py-2.5 text-sm text-text outline-none focus:border-primary">
+          {TIPOS_AUTO.map(t => <option key={t.key} value={t.key}>{t.label} — {t.desc}</option>)}
+        </select></div>
+        <div><span className="field-label">Frequencia</span><select value={form.disparo} onChange={e => setForm(f => ({ ...f, disparo: e.target.value }))} className="w-full bg-bg-input border border-border-card rounded-lg px-3 py-2.5 text-sm text-text outline-none focus:border-primary">
+          <option value="diario">Diario</option>
+          <option value="semanal">Semanal</option>
+          <option value="personalizado">Personalizado</option>
+        </select></div>
                 {form.disparo === "personalizado" && (
                   <div className="floating-label">
                     <input type="number" min={1} placeholder=" " value={form.dias} onChange={e => setForm(f => ({ ...f, dias: parseInt(e.target.value) || 1 }))} />

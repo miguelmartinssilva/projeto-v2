@@ -186,14 +186,11 @@ export default function Crm() {
                 <div className="floating-label"><input type="text" placeholder=" " value={form.telefone} onChange={e => setForm(f => ({ ...f, telefone: e.target.value }))} className="has-icon" /><Phone size={14} className="input-icon" /><label>Telefone</label></div>
                 <div className="floating-label"><input type="email" placeholder=" " value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className="has-icon" /><Mail size={14} className="input-icon" /><label>Email</label></div>
                 <div className="floating-label"><input type="text" placeholder=" " value={form.instagram} onChange={e => setForm(f => ({ ...f, instagram: e.target.value }))} className="has-icon" /><MessageCircle size={14} className="input-icon" /><label>Instagram</label></div>
-                <div className="floating-label">
-                  <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
-                    <option value="ativo">Ativo</option>
-                    <option value="pendente">Pendente</option>
-                    <option value="inativo">Inativo</option>
-                  </select>
-                  <label>Status</label>
-                </div>
+        <div><span className="field-label">Status</span><select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} className="w-full bg-bg-input border border-border-card rounded-lg px-3 py-2.5 text-sm text-text outline-none focus:border-primary">
+          <option value="ativo">Ativo</option>
+          <option value="pendente">Pendente</option>
+          <option value="inativo">Inativo</option>
+        </select></div>
               </div>
               <div className="flex gap-3 mt-6">
                 <button onClick={() => setDialog(false)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-white/5 text-text-muted hover:text-text hover:bg-white/10 transition-colors">Cancelar</button>

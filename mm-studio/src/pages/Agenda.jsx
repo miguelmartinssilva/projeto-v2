@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Plus, X, Clock, Users, Edit3, Trash2 } from "lucide-react";
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Plus, X, Users, Edit3, Trash2 } from "lucide-react";
 import { getAgenda, saveAgenda } from "../utils/storage";
 
 const MESES = ["Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
@@ -200,22 +200,13 @@ export default function Agenda() {
                   <CalendarIcon size={14} className="input-icon" />
                   <label>Titulo</label>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="floating-label">
-                    <input type="date" value={form.data} onChange={e => setForm(f => ({ ...f, data: e.target.value }))} className="has-icon" />
-                    <CalendarIcon size={14} className="input-icon" />
-                  </div>
-                  <div className="floating-label">
-                    <input type="time" value={form.hora} onChange={e => setForm(f => ({ ...f, hora: e.target.value }))} className="has-icon" />
-                    <Clock size={14} className="input-icon" />
-                  </div>
-                </div>
-                <div className="floating-label">
-                  <select value={form.tipo} onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))}>
-                    {TIPOS.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                  <label>Tipo</label>
-                </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><span className="field-label">Data</span><input type="date" value={form.data} onChange={e => setForm(f => ({ ...f, data: e.target.value }))} className="w-full bg-bg-input border border-border-card rounded-lg px-3 py-2.5 text-sm text-text outline-none focus:border-primary" /></div>
+            <div><span className="field-label">Hora</span><input type="time" value={form.hora} onChange={e => setForm(f => ({ ...f, hora: e.target.value }))} className="w-full bg-bg-input border border-border-card rounded-lg px-3 py-2.5 text-sm text-text outline-none focus:border-primary" /></div>
+          </div>
+          <div><span className="field-label">Tipo</span><select value={form.tipo} onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))} className="w-full bg-bg-input border border-border-card rounded-lg px-3 py-2.5 text-sm text-text outline-none focus:border-primary">
+            {TIPOS.map(t => <option key={t} value={t}>{t}</option>)}
+          </select></div>
                 <div className="floating-label">
                   <input type="text" placeholder=" " value={form.cliente} onChange={e => setForm(f => ({ ...f, cliente: e.target.value }))} className="has-icon" />
                   <Users size={14} className="input-icon" />

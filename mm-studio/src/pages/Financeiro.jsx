@@ -229,15 +229,12 @@ export default function Financeiro() {
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-bg-card rounded-2xl p-6 border border-border-card w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-5"><h2 className="text-base font-bold text-text">Nova Entrada</h2><button onClick={() => setShowIncome(false)} className="p-1.5 rounded-lg hover:bg-white/5 text-text-muted hover:text-text"><X size={16} /></button></div>
               <div className="space-y-4">
-                <div className="floating-label"><input type="text" placeholder=" " value={incomeForm.cliente} onChange={e => setIncomeForm(f => ({ ...f, cliente: e.target.value }))} /><label>Cliente</label></div>
-                <div className="floating-label"><input type="number" placeholder=" " value={incomeForm.valor} onChange={e => setIncomeForm(f => ({ ...f, valor: e.target.value }))} className="has-icon" /><DollarSign size={14} className="input-icon" /><label>Valor</label></div>
-                <div className="floating-label">
-                  <select value={incomeForm.categoria} onChange={e => setIncomeForm(f => ({ ...f, categoria: e.target.value }))}>
-                    <option value="Design">Design</option><option value="Social Media">Social Media</option><option value="Video">Video</option><option value="Evento">Evento</option><option value="Site">Site</option><option value="Consultoria">Consultoria</option><option value="Outros">Outros</option>
-                  </select>
-                  <label>Categoria</label>
-                </div>
-                <div className="floating-label"><input type="date" value={incomeForm.data} onChange={e => setIncomeForm(f => ({ ...f, data: e.target.value }))} /></div>
+        <div className="floating-label"><input type="text" placeholder=" " value={incomeForm.cliente} onChange={e => setIncomeForm(f => ({ ...f, cliente: e.target.value }))} /><label>Cliente</label></div>
+        <div className="floating-label"><input type="number" placeholder=" " value={incomeForm.valor} onChange={e => setIncomeForm(f => ({ ...f, valor: e.target.value }))} className="has-icon" /><DollarSign size={14} className="input-icon" /><label>Valor</label></div>
+        <div><span className="field-label">Categoria</span><select value={incomeForm.categoria} onChange={e => setIncomeForm(f => ({ ...f, categoria: e.target.value }))} className="w-full bg-bg-input border border-border-card rounded-lg px-3 py-2.5 text-sm text-text outline-none focus:border-primary">
+          <option value="Design">Design</option><option value="Social Media">Social Media</option><option value="Video">Video</option><option value="Evento">Evento</option><option value="Site">Site</option><option value="Consultoria">Consultoria</option><option value="Outros">Outros</option>
+        </select></div>
+        <div><span className="field-label">Data</span><input type="date" value={incomeForm.data} onChange={e => setIncomeForm(f => ({ ...f, data: e.target.value }))} className="w-full bg-bg-input border border-border-card rounded-lg px-3 py-2.5 text-sm text-text outline-none focus:border-primary" /></div>
               </div>
               <div className="flex gap-3 mt-6">
                 <button onClick={() => setShowIncome(false)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-white/5 text-text-muted">Cancelar</button>
@@ -252,15 +249,12 @@ export default function Financeiro() {
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-bg-card rounded-2xl p-6 border border-border-card w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-5"><h2 className="text-base font-bold text-text">{editExpense ? "Editar" : "Nova"} Despesa</h2><button onClick={() => setShowExpense(false)} className="p-1.5 rounded-lg hover:bg-white/5 text-text-muted hover:text-text"><X size={16} /></button></div>
               <div className="space-y-4">
-                <div className="floating-label"><input type="text" placeholder=" " value={expenseForm.descricao} onChange={e => setExpenseForm(f => ({ ...f, descricao: e.target.value }))} /><label>Descricao</label></div>
-                <div className="floating-label"><input type="number" placeholder=" " value={expenseForm.valor} onChange={e => setExpenseForm(f => ({ ...f, valor: e.target.value }))} className="has-icon" /><DollarSign size={14} className="input-icon" /><label>Valor</label></div>
-                <div className="floating-label">
-                  <select value={expenseForm.categoria} onChange={e => setExpenseForm(f => ({ ...f, categoria: e.target.value }))}>
-                    {CAT_DESPESA.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                  <label>Categoria</label>
-                </div>
-                <div className="floating-label"><input type="date" value={expenseForm.data} onChange={e => setExpenseForm(f => ({ ...f, data: e.target.value }))} /></div>
+        <div className="floating-label"><input type="text" placeholder=" " value={expenseForm.descricao} onChange={e => setExpenseForm(f => ({ ...f, descricao: e.target.value }))} /><label>Descricao</label></div>
+        <div className="floating-label"><input type="number" placeholder=" " value={expenseForm.valor} onChange={e => setExpenseForm(f => ({ ...f, valor: e.target.value }))} className="has-icon" /><DollarSign size={14} className="input-icon" /><label>Valor</label></div>
+        <div><span className="field-label">Categoria</span><select value={expenseForm.categoria} onChange={e => setExpenseForm(f => ({ ...f, categoria: e.target.value }))} className="w-full bg-bg-input border border-border-card rounded-lg px-3 py-2.5 text-sm text-text outline-none focus:border-primary">
+          {CAT_DESPESA.map(c => <option key={c} value={c}>{c}</option>)}
+        </select></div>
+        <div><span className="field-label">Data</span><input type="date" value={expenseForm.data} onChange={e => setExpenseForm(f => ({ ...f, data: e.target.value }))} className="w-full bg-bg-input border border-border-card rounded-lg px-3 py-2.5 text-sm text-text outline-none focus:border-primary" /></div>
               </div>
               <div className="flex gap-3 mt-6">
                 <button onClick={() => setShowExpense(false)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-white/5 text-text-muted">Cancelar</button>

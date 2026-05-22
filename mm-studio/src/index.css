@@ -93,16 +93,10 @@ body { font-family: var(--font-sans); background: var(--color-bg-main); color: v
 .floating-label textarea:focus + label, .floating-label textarea:not(:placeholder-shown) + label {
   top: 4px; font-size: 0.6rem; color: var(--color-primary);
 }
-.floating-label select:focus + label,
-.floating-label select + label {
-  top: 4px; font-size: 0.6rem;
-}
-.floating-label select:focus + label {
-  color: var(--color-primary);
-}
 .floating-label .input-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted); }
 .floating-label input.has-icon { padding-left: 38px; }
 .floating-label input.has-icon + label { left: 38px; }
+.field-label { display: block; font-size: 0.7rem; color: var(--color-text-muted); margin-bottom: 4px; }
 
 .page-enter { animation: fadeSlideUp 0.4s ease both; }
 @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }

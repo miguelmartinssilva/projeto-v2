@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Save, User, Building, Bell, Lock, Palette, Smartphone, LogOut, Eye, EyeOff, Camera, Download, Upload, DollarSign, RefreshCw, FileText } from "lucide-react";
-import { getPerfis, savePerfis, getPerfilAtivo, setPerfilAtivo } from "../utils/storage";
+import { Save, User, Building, Lock, Palette, Smartphone, LogOut, Eye, EyeOff, Camera, Download, Upload, DollarSign, RefreshCw, FileText } from "lucide-react";
+import { getPerfis, savePerfis, getPerfilAtivo } from "../utils/storage";
 
 const sections = [
   { key: "perfil", label: "Perfil", icon: User },
@@ -104,7 +104,6 @@ function SectionCard({ children, title, desc }) {
 }
 
 function Input({ label, id, type = "text", placeholder, defaultValue, suffix, onChange }) {
-  const showSuffix = type === "color";
   return (
     <div className="space-y-1.5">
       <label htmlFor={id} className="text-xs font-medium text-text-secondary uppercase tracking-[0.08em]">{label}</label>
@@ -173,7 +172,7 @@ function ProfileForm({ initial, onSave, saveRef }) {
     onSave();
   };
 
-  saveRef.current = handleSave;
+  useEffect(() => { saveRef.current = handleSave; });
 
   return (
     <div className="space-y-4">
@@ -231,7 +230,7 @@ function CompanyForm({ initial, onSave, saveRef }) {
     onSave();
   };
 
-  saveRef.current = handleSave;
+  useEffect(() => { saveRef.current = handleSave; });
 
   return (
     <div className="space-y-4">
@@ -260,7 +259,7 @@ function CompanyForm({ initial, onSave, saveRef }) {
 function PaymentForm({ initial, onSave, saveRef }) {
   const [pixTipo, setPixTipo] = useState(initial?.pixTipo || "cpf");
   const [pixChave, setPixChave] = useState(initial?.pixChave || "");
-  const [mostrarPix, setMostrarPix] = useState(initial?.mostrarPix !== false);
+  const [mostrarPix] = useState(initial?.mostrarPix !== false);
 
   const handleSave = () => {
     saveProfileField("pixTipo", pixTipo);
@@ -269,7 +268,7 @@ function PaymentForm({ initial, onSave, saveRef }) {
     onSave();
   };
 
-  saveRef.current = handleSave;
+  useEffect(() => { saveRef.current = handleSave; });
 
   return (
     <SectionCard title="Configuracao de Pagamento" desc="Informacoes de PIX que aparecem nos PDFs de proposta">
@@ -305,7 +304,14 @@ const themeColors = [
 ];
 
 function AppearanceForm() {
-  const [selected, setSelected] = useState(0);
+  const [selected, setSelected] = useState(() => +(localStorage.getItem("mm_theme_idx") || 0));
+  const applyTheme = useCallback((idx) => {
+    const t = themeColors[idx];
+    if (!t) return;
+    document.documentElement.style.setProperty("--primary", t.primary);
+    localStorage.setItem("mm_theme_idx", idx);
+  }, []);
+  useEffect(() => { applyTheme(selected); }, [selected, applyTheme]);
   return (
     <div className="space-y-4">
       <SectionCard title="Tema" desc="Escolha o esquema de cores do painel">
@@ -357,7 +363,7 @@ function DataForm() {
       try {
         const raw = localStorage.getItem(key);
         if (raw) data[key] = JSON.parse(raw);
-      } catch {}
+      } catch { /* ignore */ }
     });
 
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -435,7 +441,7 @@ function DataForm() {
                 const parsed = JSON.parse(raw);
                 count = Array.isArray(parsed) ? parsed.length : 1;
               }
-            } catch {}
+            } catch { /* ignore */ }
             return (
               <div key={key} className="flex items-center justify-between py-2 border-b border-border-card/30 last:border-0">
                 <span className="text-sm text-text">{key}</span>

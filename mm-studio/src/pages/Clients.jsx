@@ -15,14 +15,13 @@ export default function Clients() {
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("clientes");
 
-  const [fixosCount] = useState(() => getFixos().filter(c => c.ativo !== false).length);
-
-  const { clients, statusCounts, clientHistory } = useMemo(() => {
+  const { clients, statusCounts, clientHistory, fixosCount } = useMemo(() => {
     const raw = getClientes();
     const hist = getHistorico();
+    const fixos = getFixos().filter(c => c.ativo !== false).length;
 
     const enriched = raw.map(c => {
-      const props = hist.filter(h => h.cliente && h.cliente.toLowerCase().includes((c.nome || "").toLowerCase()));
+      const props = hist.filter(h => h.cliente && c.nome && h.cliente.toLowerCase().split(/\s+/).some(w => w === c.nome.toLowerCase()));
       const total = props.reduce((s, h) => s + (h.total || 0), 0);
       return {
         id: c.id,
@@ -43,7 +42,7 @@ export default function Clients() {
       pendente: enriched.filter(c => c.status === "pendente").length,
     };
 
-    return { clients: enriched, statusCounts: counts, clientHistory: hist };
+    return { clients: enriched, statusCounts: counts, clientHistory: hist, fixosCount: fixos };
   }, []);
 
   const filtered = clients.filter(c => {

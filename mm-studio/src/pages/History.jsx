@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Filter, FileText, Download, Eye, ChevronDown, CheckCircle, Clock, XCircle, Trash2, X } from "lucide-react";
+import { Search, FileText, Download, Eye, CheckCircle, Clock, XCircle, Trash2, X } from "lucide-react";
 import { getHistorico, saveHistorico, deleteHistorico } from "../utils/storage";
 import { jsPDF } from "jspdf";
 
@@ -25,19 +25,13 @@ function mapStatus(s) {
   return "rascunho";
 }
 
-function statusLabel(s) {
-  if (s === "aprovada" || s === "aprovado" || s === "pago") return "Aprovado";
-  if (s === "pendente" || s === "enviada") return "Pendente";
-  if (s === "recusada" || s === "perdida") return "Cancelado";
-  return "Rascunho";
-}
-
 export default function History() {
   const [tab, setTab] = useState("todos");
   const [search, setSearch] = useState("");
   const [viewItem, setViewItem] = useState(null);
   const [viewStatus, setViewStatus] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const { proposals, rawItems, totalCount } = useMemo(() => {
     const hist = getHistorico();
@@ -53,7 +47,8 @@ export default function History() {
       payment: h.status === "pago" ? "Pix" : null,
     }));
     return { proposals: mapped, rawItems: hist, totalCount: mapped.length };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshKey]);
 
   const filtered = proposals.filter(p => {
     if (tab !== "todos" && p.status !== tab) return false;
@@ -159,7 +154,7 @@ export default function History() {
     const raw = rawItems.find(r => (r.numero || `#${r.id}`) === confirmDelete.id);
     if (raw) deleteHistorico(raw.id);
     setConfirmDelete(null);
-    window.location.reload();
+    setRefreshKey(k => k + 1);
   };
 
   return (
@@ -175,9 +170,6 @@ export default function History() {
               <span className="text-text-muted hidden sm:inline">Total filtrado: </span>
               <span className="text-primary font-display font-bold">R$ {totalValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
             </div>
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border-card bg-bg-card text-text-secondary hover:text-text text-sm transition-colors">
-              <Filter size={15} /> Filtros <ChevronDown size={13} />
-            </motion.button>
           </div>
         </div>
 

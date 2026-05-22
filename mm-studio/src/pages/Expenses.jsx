@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { TrendingDown, Plus, Calendar, Filter, Edit3, Trash2, X, RefreshCw, ArrowUpDown, Search, DollarSign, BadgePercent } from "lucide-react";
+import { TrendingDown, Plus, Edit3, Trash2, X, RefreshCw, ArrowUpDown, DollarSign, BadgePercent } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { getDespesas, saveDespesa, deleteDespesa, getTransactions, saveTransactions } from "../utils/storage";
 
@@ -53,27 +53,28 @@ export default function Expenses() {
     }
     if (filterCat !== "Todas") list = list.filter(d => d.categoria === filterCat);
     list.sort((a, b) => {
-      let cmp = 0;
-      if (sortBy === "data") cmp = new Date(a.data) - new Date(b.data);
-      else cmp = (a.valor || 0) - (b.valor || 0);
+      if (sortBy === "data") return sortDir === "asc" ? new Date(a.data) - new Date(b.data) : new Date(b.data) - new Date(a.data);
+      const cmp = (a.valor || 0) - (b.valor || 0);
       return sortDir === "asc" ? cmp : -cmp;
     });
     return list;
   }, [despesas, filterMes, filterAno, filterCat, sortBy, sortDir]);
 
   const totalMes = useMemo(() => {
+    const d = new Date();
     return despesas
-      .filter(d => {
-        const dt = new Date(d.data + "T12:00:00");
-        return dt.getMonth() === now.getMonth() && dt.getFullYear() === now.getFullYear();
+      .filter(dd => {
+        const dt = new Date(dd.data + "T12:00:00");
+        return dt.getMonth() === d.getMonth() && dt.getFullYear() === d.getFullYear();
       })
-      .reduce((s, d) => s + (d.valor || 0), 0);
+      .reduce((s, dd) => s + (dd.valor || 0), 0);
   }, [despesas]);
 
   const totalAno = useMemo(() => {
+    const y = new Date().getFullYear();
     return despesas
-      .filter(d => new Date(d.data + "T12:00:00").getFullYear() === now.getFullYear())
-      .reduce((s, d) => s + (d.valor || 0), 0);
+      .filter(dd => new Date(dd.data + "T12:00:00").getFullYear() === y)
+      .reduce((s, dd) => s + (dd.valor || 0), 0);
   }, [despesas]);
 
   const maiorValor = useMemo(() => Math.max(...despesas.map(d => d.valor || 0), 0), [despesas]);
@@ -189,7 +190,7 @@ export default function Expenses() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((d, i) => (
+                  {filtered.map((d) => (
                     <tr key={d.id} className="border-b border-border-card/40 transition-colors hover:bg-white/[0.02] group">
                       <td className="py-3 pl-1 text-text-muted text-xs">{d.data}</td>
                       <td className="py-3 text-text font-medium">{d.descricao}</td>
@@ -287,10 +288,12 @@ function ExpenseModal({ item, onClose }) {
 
   const handleSave = () => {
     if (!descricao.trim() || !valor) return;
+    const numVal = parseFloat(valor);
+    if (isNaN(numVal) || numVal <= 0) return;
     const obj = {
       id: item?.id || Date.now(),
       descricao: descricao.trim(),
-      valor: parseFloat(valor) || 0,
+      valor: numVal,
       categoria,
       data,
       recorrente,

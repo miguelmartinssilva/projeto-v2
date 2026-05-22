@@ -22,7 +22,7 @@ function get(key, fallback) {
 }
 
 function set(key, data) {
-  try { localStorage.setItem(key, JSON.stringify(data)); } catch {}
+  try { localStorage.setItem(key, JSON.stringify(data)); } catch { /* ignore */ }
 }
 
 export const getHistorico = () => get(KEYS.HIST, []);
@@ -30,7 +30,7 @@ export const saveHistorico = (item) => {
   const hist = getHistorico();
   const idx = hist.findIndex(h => h.id === item.id);
   if (idx >= 0) {
-    item.status = hist[idx].status || "rascunho";
+    if (!item.status) item.status = hist[idx].status || "rascunho";
     hist[idx] = item;
   } else {
     hist.unshift(item);
@@ -127,7 +127,7 @@ export const getFixos = () => {
   try {
     const raw = localStorage.getItem(KEYS.FIXOS);
     if (raw) return JSON.parse(raw);
-  } catch {}
+  } catch { /* ignore */ }
   set(KEYS.FIXOS, FIXOS_PADRAO);
   return FIXOS_PADRAO;
 };

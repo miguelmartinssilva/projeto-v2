@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Search, Plus, FileText, MessageCircle, Palette, Camera, Globe, Video, Music, Layers, Star, Trash2 } from "lucide-react";
+import { Plus, FileText, MessageCircle, Palette, Layers, Star, Trash2 } from "lucide-react";
 import { getServicos, getPacotes, getPerfilAtivo, saveHistorico, getProximoNumero } from "../utils/storage";
 import { jsPDF } from "jspdf";
 

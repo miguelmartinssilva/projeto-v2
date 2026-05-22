@@ -24,16 +24,15 @@ function CustomTooltip({ active, payload, label }) {
 }
 
 export default function Finance() {
-  const now = new Date();
-  const curMonth = now.getMonth();
-  const curYear = now.getFullYear();
-
   const { topCards, chartData, pieData, pendings } = useMemo(() => {
+    const now = new Date();
+    const curMonth = now.getMonth();
+    const curYear = now.getFullYear();
     const txns = getTransactions();
     const despesas = getDespesas();
     const saidas = [
       ...txns.filter(t => t.tipo === "saida"),
-      ...despesas.filter(d => !txns.some(t => t.tipo === "saida" && t.id === d.id)),
+      ...despesas.filter(d => !txns.some(t => t.tipo === "saida" && t.id === d.id)).map(d => ({ ...d, tipo: "saida" })),
     ];
     const allTxns = [...txns.filter(t => t.tipo !== "saida"), ...saidas];
 

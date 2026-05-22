@@ -1,22 +1,16 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star, Plus, X, Check, Clock, Edit3, DollarSign, FileText, Calendar, Trash2, CheckCircle } from "lucide-react";
 import { getFixos, saveFixo, deleteFixo, getPlanosFixos, savePlanosFixos } from "../utils/storage";
 
-const PLANOS_PADRAO = {
-  basico: { nome: "Basico", valor: 600, cor: "#448aff", bg: "#448aff15", entregas: ["8 posts para redes sociais", "1 arte estatica", "Agendamento semanal"] },
-  padrao: { nome: "Padrao", valor: 1200, cor: "#7c3aed", bg: "#7c3aed15", entregas: ["12 posts para redes sociais", "2 artes estaticas", "1 Reels curto", "Agendamento", "Relatorio mensal"] },
-  premium: { nome: "Premium", valor: 2000, cor: "#ffb800", bg: "#ffb80015", entregas: ["20 posts para redes sociais", "4 artes estaticas", "2 Reels", "1 Video institucional", "Agendamento", "Relatorio semanal", "Suporte prioritario"] },
-};
+
 
 function mesKey(date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`; }
 function mesLabel(key) { const [a, m] = key.split("-"); const meses = ["Janeiro","Fevereiro","Marco","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"]; return `${meses[+m - 1]} ${a}`; }
 function hojeISO() { return new Date().toISOString().slice(0, 10); }
 
-const statusItens = ["pendente", "andamento", "concluido"];
 const statusLabels = { pendente: "Pendente", andamento: "Em andamento", concluido: "Concluido" };
 const statusColors = { pendente: "text-pending", andamento: "text-info", concluido: "text-success" };
-const statusBg = { pendente: "bg-pending/10", andamento: "bg-info/10", concluido: "bg-success/10" };
 
 export default function FixedClients() {
   const [clientes, setClientes] = useState(() => getFixos());
@@ -120,7 +114,7 @@ export default function FixedClients() {
 
       <ClienteFixoPanel cliente={selected} onClose={() => setSelected(null)} onUpdate={refresh} planos={planos} />
       <NovoFixoModal show={showModal} onClose={() => setShowModal(false)} onCreated={refresh} planos={planos} />
-      <PlanosModal show={showPlanos} onClose={() => setShowPlanos(false)} onUpdate={refresh} planos={planos} />
+      <PlanosModal key={JSON.stringify(planos)} show={showPlanos} onClose={() => setShowPlanos(false)} onUpdate={refresh} planos={planos} />
     </div>
   );
 }
@@ -148,7 +142,7 @@ function ClienteFixoPanel({ cliente, onClose, onUpdate, planos }) {
     }
     onUpdate();
     showSaved();
-  }, [cliente, onUpdate]);
+  }, [cliente, onUpdate, showSaved]);
 
   if (!cliente) return null;
 
@@ -268,7 +262,7 @@ function EntregasTab({ cliente, updateCliente }) {
   const mesEntregas = entregasCliente[mk] || [];
   const [itens, setItens] = useState(mesEntregas);
 
-  useEffect(() => { setItens(mesEntregas); }, [cliente.id, mk]);
+  if (JSON.stringify(itens) !== JSON.stringify(mesEntregas)) setItens(mesEntregas);
 
   const totalFeito = itens.reduce((s, i) => s + (i.feito || 0), 0);
   const totalQtd = itens.reduce((s, i) => s + (i.qtd || 0), 0);
@@ -334,18 +328,22 @@ function EntregasTab({ cliente, updateCliente }) {
 function AnotacoesTab({ cliente, updateCliente }) {
   const now = new Date();
   const mkAtual = mesKey(now);
-  const anotacoes = cliente.anotacoes || {};
+  const anotacoes = useMemo(() => cliente.anotacoes || {}, [cliente.anotacoes]);
   const [mes, setMes] = useState(mkAtual);
   const [texto, setTexto] = useState(anotacoes[mes] || "");
   const debounce = useRef(null);
+  const anotacoesRef = useRef(anotacoes);
+  const updateRef = useRef(updateCliente);
 
-  useEffect(() => { setTexto(anotacoes[mes] || ""); }, [cliente.id, mes]);
+  useEffect(() => { anotacoesRef.current = anotacoes; updateRef.current = updateCliente; });
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { setTexto(anotacoes[mes] || ""); }, [cliente.id, mes, anotacoes]);
 
   useEffect(() => {
     if (debounce.current) clearTimeout(debounce.current);
     debounce.current = setTimeout(() => {
-      const novas = { ...(cliente.anotacoes || {}), [mes]: texto };
-      updateCliente({ anotacoes: novas });
+      const novas = { ...(anotacoesRef.current || {}), [mes]: texto };
+      updateRef.current({ anotacoes: novas });
     }, 600);
     return () => { if (debounce.current) clearTimeout(debounce.current); };
   }, [texto, mes]);
@@ -369,18 +367,19 @@ function AnotacoesTab({ cliente, updateCliente }) {
 }
 
 function FinTab({ cliente, updateCliente, planos }) {
-  const historico = cliente.historicoFinanceiro || [];
+  const historico = useMemo(() => cliente.historicoFinanceiro || [], [cliente.historicoFinanceiro]);
   const totalRecebido = historico.filter(h => h.status === "pago").reduce((s, h) => s + (h.valor || 0), 0);
-
-  const gerarMes = () => {
-    const now = new Date();
-    const mk = mesKey(now);
-    if (historico.some(h => h.mes === mk)) return;
-    const novos = [...historico, { mes: mk, valor: cliente.valorMensal || PLANOS[cliente.plano]?.valor || 600, status: "pendente", dataPagamento: null }];
+  const marcarPago = (mes) => {
+    const novos = historico.map(h => h.mes === mes ? { ...h, status: "pago", dataPagamento: hojeISO() } : h);
     updateCliente({ historicoFinanceiro: novos });
   };
 
-  useEffect(() => { if (!historico.some(h => h.mes === mesKey(new Date()))) gerarMes(); }, [historico, updateCliente]);
+  useEffect(() => {
+    if (historico.some(h => h.mes === mesKey(new Date()))) return;
+    const mk = mesKey(new Date());
+    const novos = [...historico, { mes: mk, valor: cliente.valorMensal || planos[cliente.plano]?.valor || 600, status: "pendente", dataPagamento: null }];
+    updateCliente({ historicoFinanceiro: novos });
+  }, [historico, updateCliente, cliente.valorMensal, cliente.plano, planos]);
 
   return (
     <div className="space-y-3">
@@ -504,7 +503,7 @@ function NovoFixoModal({ show, onClose, onCreated, planos }) {
 function PlanosModal({ show, onClose, onUpdate, planos }) {
   const [edit, setEdit] = useState(() => JSON.parse(JSON.stringify(planos)));
 
-  useEffect(() => { setEdit(JSON.parse(JSON.stringify(planos))); }, [planos]);
+
 
   const handleSave = () => {
     savePlanosFixos(edit);
@@ -525,18 +524,18 @@ function PlanosModal({ show, onClose, onUpdate, planos }) {
             <div key={key} className="bg-bg-elevated rounded-xl p-5 border border-border-card">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: p.cor }} />
-                <input type="text" value={p.nome} onChange={(e) => setEdit(e => ({ ...e, [key]: { ...e[key], nome: e.target.value } }))}
+                <input type="text" value={p.nome} onChange={(e) => setEdit(prev => ({ ...prev, [key]: { ...prev[key], nome: e.target.value } }))}
                   className="bg-transparent border-b border-border-card text-lg font-display font-bold text-text outline-none focus:border-amber/50 px-1 py-0.5" />
               </div>
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="text-[10px] uppercase tracking-[0.1em] text-text-muted font-medium block mb-1">Valor (R$)</label>
-                  <input type="number" value={p.valor} onChange={(e) => setEdit(e => ({ ...e, [key]: { ...e[key], valor: +e.target.value } }))}
+                  <input type="number" value={p.valor} onChange={(e) => setEdit(prev => ({ ...prev, [key]: { ...prev[key], valor: +e.target.value } }))}
                     className="w-full bg-bg-input border border-border-card rounded-lg px-3 py-2 text-sm text-text outline-none focus:border-amber/50" />
                 </div>
                 <div>
                   <label className="text-[10px] uppercase tracking-[0.1em] text-text-muted font-medium block mb-1">Cor</label>
-                  <input type="color" value={p.cor} onChange={(e) => setEdit(e => ({ ...e, [key]: { ...e[key], cor: e.target.value } }))}
+                  <input type="color" value={p.cor} onChange={(e) => setEdit(prev => ({ ...prev, [key]: { ...prev[key], cor: e.target.value } }))}
                     className="w-full h-9 bg-bg-input border border-border-card rounded-lg cursor-pointer" />
                 </div>
               </div>

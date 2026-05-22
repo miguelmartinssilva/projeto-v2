@@ -17,6 +17,8 @@ export default function Clients() {
   const [dialog, setDialog] = useState(false);
   const [editId, setEditId] = useState(null);
   const [form, setForm] = useState(emptyForm);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   const { clients, totalClients, ativos, pendentes, fixosCount } = useMemo(() => {
     const raw = getClientes();
@@ -59,9 +61,16 @@ export default function Clients() {
     saveClientes(lista);
     setDialog(false);
   };
-  const remove = (id) => {
-    if (!confirm("Excluir cliente?")) return;
-    saveClientes(getClientes().filter(c => c.id !== id));
+  const handleDelete = (c) => setConfirmDelete(c);
+  const confirmDel = () => {
+    if (confirmDelete) {
+      setDeletingId(confirmDelete.id);
+      setTimeout(() => {
+        saveClientes(getClientes().filter(c => c.id !== confirmDelete.id));
+        setDeletingId(null);
+        setConfirmDelete(null);
+      }, 250);
+    }
   };
 
   return (
@@ -140,8 +149,9 @@ export default function Clients() {
                   {filtered.length === 0 && (
                     <tr><td colSpan={6} className="py-12 text-center text-text-muted text-sm">Nenhum cliente encontrado</td></tr>
                   )}
+                  <AnimatePresence>
                   {filtered.map(c => (
-                    <tr key={c.id} className="border-b border-border-card/30 transition-colors hover:bg-white/[0.02] group">
+                    <motion.tr key={c.id} layout exit={{ opacity: 0, x: 60, scale: 0.95, transition: { duration: 0.2 } }} className="border-b border-border-card/30 transition-colors hover:bg-white/[0.02] group">
                       <td className="py-3 pl-4">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-full bg-bg-elevated border border-border-card flex items-center justify-center text-xs font-bold text-primary flex-shrink-0">
@@ -172,14 +182,15 @@ export default function Clients() {
                         R$ {c.totalSpent.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                       </td>
                       <td className="py-3 text-right text-sm text-text-muted">{c.proposals}</td>
-                      <td className="py-3 pr-4 text-center">
-                        <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <td className="py-3 pr-4">
+                        <div className="flex items-center justify-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                           <button onClick={() => openEdit(c)} className="p-1.5 rounded-lg hover:bg-white/5 text-text-muted hover:text-text transition-colors"><Edit3 size={13} /></button>
-                          <button onClick={() => remove(c.id)} className="p-1.5 rounded-lg hover:bg-white/5 text-text-muted hover:text-danger transition-colors"><Trash2 size={13} /></button>
+                          <button onClick={() => handleDelete(c)} className="p-1.5 rounded-lg hover:bg-white/5 text-text-muted hover:text-danger transition-colors"><Trash2 size={13} /></button>
                         </div>
                       </td>
-                    </tr>
+                    </motion.tr>
                   ))}
+                  </AnimatePresence>
                 </tbody>
               </table>
             </div>
@@ -188,6 +199,20 @@ export default function Clients() {
       </div>
 
       <AnimatePresence>
+        {confirmDelete && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-bg-card rounded-2xl max-w-sm w-full p-6 text-center">
+              <Trash2 size={36} className="text-danger mx-auto mb-3" />
+              <h2 className="text-lg font-display font-bold text-text mb-2">Excluir Cliente?</h2>
+              <p className="text-sm text-text-muted mb-5">Esta acao nao pode ser desfeita.</p>
+              <div className="flex gap-3">
+                <button onClick={() => { if (!deletingId) setConfirmDelete(null); }} className="flex-1 py-2.5 rounded-lg border border-border-card text-text-secondary hover:text-text transition-colors text-sm">Cancelar</button>
+                <button onClick={confirmDel} disabled={!!deletingId} className="flex-1 py-2.5 rounded-lg bg-danger text-white hover:bg-danger/80 transition-colors text-sm font-semibold disabled:opacity-50">{deletingId ? "Deletando..." : "Excluir"}</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
         {dialog && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
             onClick={() => setDialog(false)}>

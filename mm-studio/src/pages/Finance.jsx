@@ -307,7 +307,7 @@ export default function Finance() {
                 <p className={`text-xs font-semibold ${p.overdue ? "text-danger" : "text-pending"}`}>{p.overdue ? "Vencido" : "Pendente"}</p>
                 <p className="text-[11px] text-text-muted">{p.date}</p>
               </div>
-              <button className="ml-3 p-2 rounded-lg bg-primary/10 text-primary opacity-0 group-hover:opacity-100 transition-all"><Check size={14} /></button>
+              <button className="ml-3 p-2 rounded-lg bg-primary/10 text-primary md:opacity-0 md:group-hover:opacity-100 transition-all"><Check size={14} /></button>
             </div>
           )) : (
             <p className="text-sm text-text-muted text-center py-8">Nenhuma pendencia</p>
@@ -396,7 +396,7 @@ export default function Finance() {
                         {d.recorrente ? <RefreshCw size={14} className="text-primary mx-auto" /> : <span className="text-text-muted">—</span>}
                       </td>
                       <td className="py-3 text-center pr-1">
-                        <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center justify-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                           <button onClick={() => openEditExpense(d)} className="p-1.5 rounded-lg hover:bg-white/5 text-text-muted hover:text-text transition-colors"><Edit3 size={13} /></button>
                           <button onClick={() => handleDelete(d)} className="p-1.5 rounded-lg hover:bg-white/5 text-text-muted hover:text-danger transition-colors"><Trash2 size={13} /></button>
                         </div>

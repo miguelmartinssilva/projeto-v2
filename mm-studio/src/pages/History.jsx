@@ -239,7 +239,7 @@ export default function History() {
                       </td>
                       <td className="px-4 py-3.5 text-right text-text-muted text-xs hidden sm:table-cell">{p.date}</td>
                       <td className="px-4 py-3.5 text-center">
-                        <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity xs:opacity-100">
+                        <div className="flex items-center justify-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                           <button onClick={() => handleView(p)} className="p-1.5 rounded-lg hover:bg-white/5 text-text-muted hover:text-text transition-colors" title="Visualizar"><Eye size={14} /></button>
                           <button onClick={() => handleDownloadPDF(p)} className="p-1.5 rounded-lg hover:bg-white/5 text-text-muted hover:text-primary transition-colors" title="Baixar PDF"><Download size={14} /></button>
                           <button onClick={() => handleDelete(p)} className="p-1.5 rounded-lg hover:bg-white/5 text-text-muted hover:text-danger transition-colors" title="Excluir"><Trash2 size={14} /></button>

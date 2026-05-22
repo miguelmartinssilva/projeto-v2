@@ -56,7 +56,10 @@ export const deleteDespesa = (id) => {
 export const getClientes = () => get(KEYS.CLIENTES, []);
 export const saveClientes = (lista) => set(KEYS.CLIENTES, lista);
 
-export const getTransactions = () => get(KEYS.FINANCEIRO, []);
+export const getTransactions = () => {
+  const data = get(KEYS.FINANCEIRO, []);
+  return Array.isArray(data) ? data : [];
+};
 export const saveTransactions = (lista) => set(KEYS.FINANCEIRO, lista);
 
 export const getServicos = () => get(KEYS.SERVICOS, SERVICOS_PADRAO);

@@ -299,6 +299,8 @@ function ExpenseModal({ item, onClose }) {
       recorrente,
     };
     saveDespesa(obj);
+    const txns = getTransactions();
+    const tIdx = txns.findIndex(t => t.id === obj.id);
     const trans = {
       id: obj.id,
       tipo: "saida",
@@ -308,7 +310,8 @@ function ExpenseModal({ item, onClose }) {
       data: obj.data,
       status: "pago",
     };
-    saveTransactions(trans);
+    if (tIdx >= 0) { txns[tIdx] = trans; saveTransactions(txns); }
+    else { saveTransactions([trans, ...txns]); }
     onClose();
   };
 

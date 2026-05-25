@@ -1,224 +1,148 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Plus, X, Edit3, Trash2, DollarSign, User, Phone, ArrowRight } from "lucide-react";
-import { getComercial, saveComercial } from "../utils/storage";
-
-const STAGES = [
-  { key: "lead",      label: "Lead",       color: "#a0a0a0", bg: "#a0a0a018" },
-  { key: "contato",   label: "Contato",    color: "#448aff", bg: "#448aff18" },
-  { key: "proposta",  label: "Proposta",   color: "#facc15", bg: "#facc1518" },
-  { key: "negociacao",label: "Negociacao", color: "#7c3aed", bg: "#7c3aed18" },
-  { key: "fechado",   label: "Fechado",    color: "#22c55e", bg: "#22c55e18" },
-];
-
-function emptyForm() { return { nome: "", empresa: "", telefone: "", valor: "", stage: "lead", observacao: "" }; }
+import { useEffect } from "react";
+import { motion } from "framer-motion";
+import { Search, Plus, LayoutGrid, List, BarChart3, Download } from "lucide-react";
+import useComercialStore from "../store/comercialStore";
+import PipelineBoard from "../components/comercial/pipeline/PipelineBoard";
+import ComercialTable from "../components/comercial/table/ComercialTable";
+import NegotiationDrawer from "../components/comercial/drawer/NegotiationDrawer";
+import NewDealDialog from "../components/comercial/modals/NewDealDialog";
+import MetricsCards from "../components/comercial/metrics/MetricsCards";
+import SalesFunnel from "../components/comercial/charts/SalesFunnel";
+import RankingCard from "../components/comercial/charts/RankingCard";
+import RevenueChart from "../components/comercial/charts/RevenueChart";
+import FiltersDropdown from "../components/comercial/filters/FiltersDropdown";
+import Toast from "../components/comercial/ui/Toast";
+import ConfirmDialog from "../components/comercial/ui/ConfirmDialog";
+import LoadingSkeleton from "../components/comercial/ui/LoadingSkeleton";
+import { getComercial } from "../utils/storage";
 
 export default function Comercial() {
-  const [deals, setDeals] = useState(() => getComercial());
-  const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState(emptyForm());
-  const [editingId, setEditingId] = useState(null);
-  const refresh = () => setDeals(getComercial());
+  const { init, loading, search, setSearch, view, setView, toast, confirmDialog, hideConfirm, openNewDealDialog, getMetrics, deleteDeal } = useComercialStore();
 
-  const save = () => {
-    if (!form.nome.trim()) return;
-    const lista = getComercial();
-    const deal = { ...form, valor: parseFloat(form.valor) || 0, id: editingId || Date.now(), criadoEm: new Date().toISOString().slice(0, 10) };
-    if (editingId) {
-      const idx = lista.findIndex(d => d.id === editingId);
-      if (idx >= 0) lista[idx] = deal;
-    } else {
-      lista.push(deal);
-    }
-    saveComercial(lista);
-    refresh();
-    setShowModal(false);
-    setForm(emptyForm());
-    setEditingId(null);
+  useEffect(() => { init(); }, [init]);
+
+  const metrics = getMetrics();
+  const fmt = (v) => `R$ ${(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 0 })}`;
+
+  const handleExport = () => {
+    const deals = getComercial();
+    const csv = ["Cliente,Empresa,Valor,Etapa,Prioridade,Responsavel,Probabilidade"]
+      .concat(deals.map(d => `"${d.cliente}","${d.empresa || ""}",${d.valor},${d.stage},${d.prioridade},${d.responsavel},${d.probabilidade ?? 0}%`))
+      .join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "comercial_pipeline.csv"; a.click();
+    URL.revokeObjectURL(url);
   };
 
-  const openEdit = (d) => {
-    setForm({ nome: d.nome, empresa: d.empresa || "", telefone: d.telefone || "", valor: String(d.valor || ""), stage: d.stage, observacao: d.observacao || "" });
-    setEditingId(d.id);
-    setShowModal(true);
-  };
-
-  const advance = (id) => {
-    const lista = getComercial();
-    const idx = lista.findIndex(d => d.id === id);
-    if (idx < 0) return;
-    const cur = STAGES.findIndex(s => s.key === lista[idx].stage);
-    if (cur < STAGES.length - 1) {
-      lista[idx].stage = STAGES[cur + 1].key;
-      saveComercial(lista);
-      refresh();
-    }
-  };
-
-  const del = (id) => {
-    saveComercial(getComercial().filter(d => d.id !== id));
-    refresh();
-  };
-
-  const totalPipeline = deals.reduce((s, d) => s + (d.valor || 0), 0);
-  const stageTotals = STAGES.map(s => ({
-    ...s,
-    deals: deals.filter(d => d.stage === s.key),
-    total: deals.filter(d => d.stage === s.key).reduce((sum, d) => sum + (d.valor || 0), 0),
-  }));
+  if (loading) return <LoadingSkeleton />;
 
   return (
     <div className="flex-1 min-h-screen page-enter">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
-        <div className="flex items-start justify-between mb-8">
+        {/* HEADER */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
           <div>
-            <p className="text-xs text-text-muted mb-1 tracking-wide">
-              MM Studio <span className="mx-1.5 text-border-light">/</span>
-              <span className="text-text-secondary font-medium">Comercial</span>
-            </p>
+            <p className="text-xs text-text-muted mb-1 tracking-wide">MM Studio <span className="mx-1.5 text-border-light">/</span><span className="text-text-secondary font-medium">Comercial</span></p>
             <h1 className="text-2xl font-display font-bold text-text leading-tight">Pipeline Comercial</h1>
-            <p className="text-xs text-text-muted mt-1">Acompanhe suas oportunidades de venda</p>
+            <p className="text-xs text-text-muted mt-1">Acompanhe suas oportunidades, negociacoes e metas de venda</p>
           </div>
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => { setForm(emptyForm()); setEditingId(null); setShowModal(true); }}
-            className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg"
-          >
-            <Plus size={16} /> Novo Deal
-          </motion.button>
+          <div className="flex items-center gap-2">
+            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleExport}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-white/5 text-text-muted hover:text-text hover:bg-white/10 border border-border-card transition-all">
+              <Download size={13} /> Exportar
+            </motion.button>
+            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => openNewDealDialog()}
+              className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg">
+              <Plus size={16} /> Nova Negociacao
+            </motion.button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-5 gap-3 mb-8">
-          {stageTotals.map(s => (
-            <div key={s.key} className="bg-bg-card rounded-xl p-4 border border-border-card text-center">
-              <p className="text-[10px] uppercase tracking-[0.12em] font-semibold" style={{ color: s.color }}>{s.label}</p>
-              <p className="text-lg font-bold text-text mt-1">{s.deals.length}</p>
-              <p className="text-[10px] text-text-muted">R$ {s.total.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}</p>
+        {/* METRICS */}
+        <div className="mb-6">
+          <MetricsCards />
+        </div>
+
+        {/* META PROGRESS */}
+        <div className="bg-bg-card rounded-xl border border-border-card p-4 mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">Meta Mensal</span>
+              <span className="text-xs font-bold text-primary">{fmt(metrics.receitaTotal)}</span>
+              <span className="text-[10px] text-text-muted">de {fmt(metrics.metaMensal)}</span>
             </div>
-          ))}
+            <span className={`text-xs font-bold ${metrics.receitaTotal >= metrics.metaMensal ? "text-emerald-400" : "text-amber-400"}`}>
+              {Math.round((metrics.receitaTotal / metrics.metaMensal) * 100)}%
+            </span>
+          </div>
+          <div className="h-2 bg-bg-elevated rounded-full overflow-hidden">
+            <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min((metrics.receitaTotal / metrics.metaMensal) * 100, 100)}%` }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="h-full rounded-full"
+              style={{ background: metrics.receitaTotal >= metrics.metaMensal ? "#22c55e" : "linear-gradient(90deg, #00e676, #00c853)" }} />
+          </div>
         </div>
 
-        <div className="overflow-x-auto pb-4">
-          <div className="flex gap-4 min-w-[900px]">
-            {stageTotals.map(s => (
-              <div key={s.key} className="flex-1">
-                <div className="bg-bg-card rounded-2xl p-4 border border-border-card min-h-[400px]">
-                  <div className="flex items-center justify-between mb-4">
+        {/* SEARCH + FILTERS + VIEW TOGGLE */}
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between mb-4">
+          <div className="relative flex-1 max-w-xs">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+            <input type="text" placeholder="Buscar negociacao..." value={search} onChange={e => setSearch(e.target.value)}
+              className="w-full bg-bg-input border border-border-card rounded-lg pl-9 pr-3 py-2 text-sm text-text placeholder-text-muted outline-none focus:border-primary transition-colors" />
+          </div>
+          <div className="flex items-center gap-2">
+            <FiltersDropdown />
+            <div className="flex items-center bg-white/[0.03] rounded-lg p-0.5 border border-border-card">
+              <button onClick={() => setView("pipeline")} className={`p-2 rounded-md transition-all ${view === "pipeline" ? "bg-primary/15 text-primary" : "text-text-muted hover:text-text"}`}><LayoutGrid size={14} /></button>
+              <button onClick={() => setView("table")} className={`p-2 rounded-md transition-all ${view === "table" ? "bg-primary/15 text-primary" : "text-text-muted hover:text-text"}`}><List size={14} /></button>
+              <button onClick={() => setView("analytics")} className={`p-2 rounded-md transition-all ${view === "analytics" ? "bg-primary/15 text-primary" : "text-text-muted hover:text-text"}`}><BarChart3 size={14} /></button>
+            </div>
+          </div>
+        </div>
+
+        {/* MAIN CONTENT */}
+        {view === "pipeline" && <PipelineBoard />}
+        {view === "table" && <ComercialTable />}
+        {view === "analytics" && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <SalesFunnel />
+            <RevenueChart />
+            <RankingCard />
+            <div className="bg-bg-card rounded-2xl border border-border-card p-5">
+              <h3 className="text-sm font-bold text-text mb-1">Resumo Geral</h3>
+              <p className="text-[10px] text-text-muted mb-4">Metricas consolidadas do pipeline</p>
+              <div className="space-y-3">
+                {[
+                  { label: "Valor no Pipeline", value: fmt(metrics.pipelineValor), color: "#3b82f6" },
+                  { label: "Receita Fechada", value: fmt(metrics.receitaTotal), color: "#22c55e" },
+                  { label: "Taxa de Conversao", value: `${metrics.taxaConversao}%`, color: "#8b5cf6" },
+                  { label: "Ticket Medio", value: fmt(metrics.ticketMedio), color: "#f59e0b" },
+                  { label: "Negociacoes Ativas", value: metrics.negociacoesAtivas, color: "#00e676" },
+                  { label: "Vendas Fechadas", value: metrics.vendasFechadas, color: "#7c3aed" },
+                ].map((item, i) => (
+                  <div key={item.label} className="flex items-center justify-between p-2.5 rounded-lg bg-bg-elevated/50">
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full" style={{ background: s.color }} />
-                      <span className="text-sm font-bold text-text">{s.label}</span>
-                      <span className="text-[10px] bg-white/[0.04] text-text-muted px-1.5 py-0.5 rounded-full">{s.deals.length}</span>
+                      <div className="w-1.5 h-1.5 rounded-full" style={{ background: item.color }} />
+                      <span className="text-xs text-text-secondary">{item.label}</span>
                     </div>
+                    <span className="text-xs font-bold" style={{ color: item.color }}>{item.value}</span>
                   </div>
-                  <div className="space-y-2">
-                    <AnimatePresence>
-                      {s.deals.map(d => (
-                        <motion.div
-                          key={d.id}
-                          layout
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, scale: 0.95 }}
-                          className="bg-white/[0.03] rounded-xl p-3 border border-border-card hover:bg-white/[0.06] transition-colors group"
-                        >
-                          <div className="flex items-start justify-between mb-2">
-                            <p className="text-sm font-semibold text-text truncate flex-1">{d.nome}</p>
-                            <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button onClick={() => openEdit(d)} className="p-1 rounded hover:bg-white/5 text-text-muted hover:text-text"><Edit3 size={11} /></button>
-                              <button onClick={() => del(d.id)} className="p-1 rounded hover:bg-danger/10 text-text-muted hover:text-danger"><Trash2 size={11} /></button>
-                            </div>
-                          </div>
-                          {d.empresa && <p className="text-[11px] text-text-muted mb-1">{d.empresa}</p>}
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-primary">R$ {(d.valor || 0).toLocaleString("pt-BR", { minimumFractionDigits: 0 })}</span>
-                            {s.key !== "fechado" && (
-                              <button onClick={() => advance(d.id)} className="p-1 rounded hover:bg-white/5 text-text-muted hover:text-primary transition-colors" title="Avancar etapa">
-                                <ArrowRight size={12} />
-                              </button>
-                            )}
-                          </div>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-                    {s.deals.length === 0 && (
-                      <div className="flex flex-col items-center justify-center py-10 gap-2">
-                        <p className="text-xs text-text-muted">Nenhum deal</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-
-        <div className="bg-bg-card rounded-2xl p-6 border border-border-card">
-          <h2 className="text-sm font-bold text-text tracking-tight mb-1">Resumo do Pipeline</h2>
-          <p className="text-xs text-text-muted mb-4">Total: <span className="text-primary font-bold">R$ {totalPipeline.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span> em {deals.length} negocio{deals.length !== 1 ? "s" : ""}</p>
-          <div className="space-y-2">
-            {STAGES.map((s) => {
-              const stageSum = deals.filter(d => d.stage === s.key).reduce((sum, d) => sum + (d.valor || 0), 0);
-              const pct = totalPipeline > 0 ? Math.round(stageSum / totalPipeline * 100) : 0;
-              return (
-                <div key={s.key} className="flex items-center gap-3">
-                  <span className="text-[10px] font-semibold w-20 text-right" style={{ color: s.color }}>{s.label}</span>
-                  <div className="flex-1 h-3 bg-bg-elevated rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: s.color }} />
-                  </div>
-                  <span className="text-[10px] text-text-muted w-20">R$ {stageSum.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        )}
       </div>
 
-      <AnimatePresence>
-        {showModal && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-bg-card rounded-2xl p-6 border border-border-card w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
-              <div className="flex items-center justify-between mb-5">
-                <h2 className="text-base font-bold text-text">{editingId ? "Editar Deal" : "Novo Deal"}</h2>
-                <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg hover:bg-white/5 text-text-muted hover:text-text"><X size={16} /></button>
-              </div>
-              <div className="space-y-4">
-                <div className="floating-label">
-                  <input type="text" placeholder=" " value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))} className="has-icon" />
-                  <User size={14} className="input-icon" />
-                  <label>Nome do contato</label>
-                </div>
-                <div className="floating-label">
-                  <input type="text" placeholder=" " value={form.empresa} onChange={e => setForm(f => ({ ...f, empresa: e.target.value }))} />
-                  <label>Empresa</label>
-                </div>
-                <div className="floating-label">
-                  <input type="text" placeholder=" " value={form.telefone} onChange={e => setForm(f => ({ ...f, telefone: e.target.value }))} className="has-icon" />
-                  <Phone size={14} className="input-icon" />
-                  <label>Telefone</label>
-                </div>
-                <div className="floating-label">
-                  <input type="number" placeholder=" " value={form.valor} onChange={e => setForm(f => ({ ...f, valor: e.target.value }))} className="has-icon" />
-                  <DollarSign size={14} className="input-icon" />
-                  <label>Valor estimado</label>
-                </div>
-        <div><span className="field-label">Estagio</span><select value={form.stage} onChange={e => setForm(f => ({ ...f, stage: e.target.value }))} className="w-full bg-bg-input border border-border-card rounded-lg px-3 py-2.5 text-sm text-text outline-none focus:border-primary">
-          {STAGES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
-        </select></div>
-                <div className="floating-label">
-                  <textarea rows={2} placeholder=" " value={form.observacao} onChange={e => setForm(f => ({ ...f, observacao: e.target.value }))} />
-                  <label>Observacao</label>
-                </div>
-              </div>
-              <div className="flex gap-3 mt-6">
-                <button onClick={() => setShowModal(false)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-white/5 text-text-muted hover:text-text hover:bg-white/10 transition-colors">Cancelar</button>
-                <button onClick={save} className="flex-1 py-2.5 rounded-xl text-sm font-semibold btn-primary">Salvar</button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* OVERLAYS */}
+      <NegotiationDrawer />
+      <NewDealDialog />
+      <Toast toast={toast} />
+      <ConfirmDialog open={!!confirmDialog} title={confirmDialog?.title} description={confirmDialog?.description}
+        onConfirm={confirmDialog?.onConfirm} onCancel={hideConfirm} />
     </div>
   );
 }

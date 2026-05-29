@@ -18,11 +18,11 @@ import Login from "./pages/Login";
 function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
   return (
-    <div className="min-h-screen bg-bg-main flex">
+    <div className="min-h-dvh bg-bg-main flex overflow-x-hidden">
       <Sidebar collapsed={collapsed} onToggle={setCollapsed} />
-      <div className={`flex-1 transition-all duration-300 ${collapsed ? "lg:ml-16" : "lg:ml-56"}`}>
+      <main className={`flex-1 min-w-0 transition-all duration-300 ${collapsed ? "lg:ml-16" : "lg:ml-56"}`}>
         <Outlet />
-      </div>
+      </main>
     </div>
   );
 }

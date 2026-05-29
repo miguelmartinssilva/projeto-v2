@@ -38,52 +38,52 @@ export default function Analytics() {
     <div className="flex-1 min-h-screen page-enter">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <p className="text-xs text-text-muted mb-1 tracking-wide">
-              MM Studio <span className="mx-1.5 text-border-light">/</span>
-              <span className="text-text-secondary font-medium">Analytics</span>
-            </p>
-            <h1 className="text-2xl font-display font-bold text-text leading-tight">Analytics</h1>
-            <p className="text-xs text-text-muted mt-1">Business Intelligence e insights estrategicos</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex gap-1 bg-bg-card rounded-xl border border-border-card p-1">
-              {PERIODOS.map(p => (
-                <button key={p.key} onClick={() => setPeriodo(p.key)}
-                  className={`px-2.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${periodo === p.key ? "bg-primary text-black" : "text-text-muted hover:text-text"}`}>
-                  {p.label}
-                </button>
-              ))}
-            </div>
-            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-              onClick={exportCSV}
-              className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold bg-white/5 text-text-muted hover:text-text border border-border-card hover:border-border-light transition-all">
-              <Download size={13} /> Exportar
-            </motion.button>
-          </div>
+<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <p className="text-xs text-text-muted mb-1 tracking-wide">
+            MM Studio <span className="mx-1.5 text-border-light">/</span>
+            <span className="text-text-secondary font-medium">Analytics</span>
+          </p>
+          <h1 className="text-2xl font-display font-bold text-text leading-tight">Analytics</h1>
+          <p className="text-xs text-text-muted mt-1">Business Intelligence e insights estrategicos</p>
         </div>
-
-        <MetricsCards />
-
-        <div className="flex items-center justify-between mt-6 mb-4">
-          <div className="flex items-center gap-1 bg-bg-card rounded-xl border border-border-card p-1">
-            {views.map(v => (
-              <button key={v.key} onClick={() => setView(v.key)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${view === v.key ? "bg-primary/15 text-primary" : "text-text-muted hover:text-text"}`}>
-                <v.icon size={13} /> {v.label}
+        <div className="flex items-center gap-2 self-start sm:self-auto overflow-x-auto">
+          <div className="flex gap-1 bg-bg-card rounded-xl border border-border-card p-1">
+            {PERIODOS.map(p => (
+              <button key={p.key} onClick={() => setPeriodo(p.key)}
+                className={`px-2.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all whitespace-nowrap ${periodo === p.key ? "bg-primary text-black" : "text-text-muted hover:text-text"}`}>
+                {p.label}
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-              <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar metricas..."
-                className="bg-bg-card border border-border-card rounded-lg pl-8 pr-3 py-2 text-xs text-text placeholder-text-muted outline-none focus:border-primary w-52" />
-            </div>
-            <FiltersDropdown />
-          </div>
+          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+            onClick={exportCSV}
+            className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold bg-white/5 text-text-muted hover:text-text border border-border-card hover:border-border-light transition-all whitespace-nowrap">
+            <Download size={13} /> Exportar
+          </motion.button>
         </div>
+      </div>
+
+        <MetricsCards />
+
+<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-6 mb-4">
+        <div className="flex items-center gap-1 bg-bg-card rounded-xl border border-border-card p-1 overflow-x-auto">
+          {views.map(v => (
+            <button key={v.key} onClick={() => setView(v.key)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${view === v.key ? "bg-primary/15 text-primary" : "text-text-muted hover:text-text"}`}>
+              <v.icon size={13} /> {v.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1 sm:flex-initial">
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+            <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar metricas..."
+              className="w-full sm:w-52 bg-bg-card border border-border-card rounded-lg pl-8 pr-3 py-2 text-xs text-text placeholder-text-muted outline-none focus:border-primary" />
+          </div>
+          <FiltersDropdown />
+        </div>
+      </div>
 
         {view === "dashboard" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">

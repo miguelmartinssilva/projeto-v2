@@ -46,38 +46,38 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
         {/* HEADER */}
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <p className="text-xs text-text-muted mb-1 tracking-wide">
-              MM Studio <span className="mx-1.5 text-border-light">/</span>
-              <span className="text-text-secondary font-medium">Dashboard</span>
-            </p>
-            <h1 className="text-2xl font-display font-bold text-text leading-tight">
-              {greeting}, Miguel <span className="inline-block animate-pulse">👋</span>
-            </h1>
-            <p className="text-xs text-text-muted mt-1 capitalize">{today} · Visao consolidada do seu negocio</p>
+<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <p className="text-xs text-text-muted mb-1 tracking-wide">
+            MM Studio <span className="mx-1.5 text-border-light">/</span>
+            <span className="text-text-secondary font-medium">Dashboard</span>
+          </p>
+          <h1 className="text-2xl font-display font-bold text-text leading-tight">
+            {greeting}, Miguel <span className="inline-block animate-pulse">👋</span>
+          </h1>
+          <p className="text-xs text-text-muted mt-1 capitalize">{today} · Visao consolidada do seu negocio</p>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+          <div className="flex gap-1 bg-bg-card rounded-xl border border-border-card p-1">
+            {PERIODOS.map(p => (
+              <button key={p.key} onClick={() => setPeriodo(p.key)}
+                className={`px-2.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all whitespace-nowrap ${periodo === p.key ? "bg-primary text-black" : "text-text-muted hover:text-text"}`}>
+                {p.label}
+              </button>
+            ))}
           </div>
-          <div className="flex items-center gap-2">
-            <div className="flex gap-1 bg-bg-card rounded-xl border border-border-card p-1">
-              {PERIODOS.map(p => (
-                <button key={p.key} onClick={() => setPeriodo(p.key)}
-                  className={`px-2.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${periodo === p.key ? "bg-primary text-black" : "text-text-muted hover:text-text"}`}>
-                  {p.label}
-                </button>
-              ))}
-            </div>
-            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-              onClick={exportCSV}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-white/5 text-text-muted hover:text-text border border-border-card hover:border-border-light transition-all">
-              <Download size={13} /> Exportar
-            </motion.button>
-            <FiltersDropdown />
-            <NotificationsDropdown />
-            <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center text-xs font-bold text-primary border border-primary/20">
-              MM
-            </div>
+          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+            onClick={exportCSV}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-white/5 text-text-muted hover:text-text border border-border-card hover:border-border-light transition-all whitespace-nowrap">
+            <Download size={13} /> Exportar
+          </motion.button>
+          <FiltersDropdown />
+          <NotificationsDropdown />
+          <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center text-xs font-bold text-primary border border-primary/20">
+            MM
           </div>
         </div>
+      </div>
 
         {/* KPI CARDS */}
         <MetricsCards />

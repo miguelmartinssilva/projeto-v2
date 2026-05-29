@@ -35,12 +35,12 @@ export default function KanbanBoard() {
   };
 
   return (
-    <div className="flex gap-3 overflow-x-auto pb-4 min-h-[500px]">
+    <div className="flex gap-3 overflow-x-auto pb-4 min-h-[500px] -mx-4 px-4 sm:mx-0 sm:px-0">
       {STATUS_ORDER.map(col => {
         const cfg = statusConfig[col];
         const items = columns[col] || [];
         return (
-          <div key={col} className={`flex-shrink-0 w-[260px] rounded-xl transition-all duration-200 ${dragOverCol === col ? "bg-bg-elevated/80 ring-1 ring-primary/30" : "bg-bg-card/50"}`}
+          <div key={col} className={`flex-shrink-0 w-[260px] sm:w-[260px] rounded-xl transition-all duration-200 ${dragOverCol === col ? "bg-bg-elevated/80 ring-1 ring-primary/30" : "bg-bg-card/50"}`}
             onDragOver={e => onDragOver(e, col)} onDrop={e => onDrop(e, col)} onDragLeave={() => setDragOverCol(null)}>
             <div className="flex items-center justify-between px-3 py-3 border-b border-border-card/40">
               <div className="flex items-center gap-2">

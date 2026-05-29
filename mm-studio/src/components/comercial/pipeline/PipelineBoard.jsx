@@ -11,7 +11,7 @@ const fmt = (v) => `R$ ${(v || 0).toLocaleString("pt-BR", { minimumFractionDigit
 function PipelineColumn({ stage, deals, onCardClick }) {
   const total = deals.reduce((s, d) => s + (d.valor || 0), 0);
   return (
-    <div className="flex-shrink-0 w-[270px] flex flex-col rounded-xl bg-bg-card/40 border border-border-card/50 min-h-[500px]">
+    <div className="flex-shrink-0 w-[270px] sm:w-[270px] flex flex-col rounded-xl bg-bg-card/40 border border-border-card/50 min-h-[500px]">
       <div className="px-3 py-3 border-b border-border-card/40 flex-shrink-0">
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-2">
@@ -115,7 +115,7 @@ export default function PipelineBoard() {
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd} modifiers={[restrictToWindowEdges]}>
-      <div className="flex gap-3 overflow-x-auto pb-4 min-h-[540px]">
+      <div className="flex gap-3 overflow-x-auto pb-4 min-h-[540px] -mx-4 px-4 sm:mx-0 sm:px-0">
         {PIPELINE_STAGES.map(stage => (
           <PipelineColumn key={stage.key} stage={stage} deals={columns[stage.key] || []} onCardClick={openDrawer} />
         ))}

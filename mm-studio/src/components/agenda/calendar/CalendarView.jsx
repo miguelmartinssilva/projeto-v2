@@ -60,9 +60,15 @@ export default function CalendarView() {
   const renderEventContent = (eventInfo) => <EVENT_RENDER event={eventInfo.event} />;
 
   return (
-    <div className="bg-bg-card rounded-2xl border border-border-card overflow-hidden agenda-calendar">
+<div className="bg-bg-card rounded-2xl border border-border-card overflow-hidden agenda-calendar -mx-4 sm:mx-0">
       <style>{`
-        .agenda-calendar .fc { --fc-border-color: #1f1f1f; --fc-today-bg-color: rgba(0,230,118,0.04); --fc-neutral-bg-color: transparent; --fc-page-bg-color: transparent; font-size: 12px; }
+      .agenda-calendar .fc { --fc-border-color: #1f1f1f; --fc-today-bg-color: rgba(0,230,118,0.04); --fc-neutral-bg-color: transparent; --fc-page-bg-color: transparent; font-size: 12px; }
+      .agenda-calendar .fc .fc-toolbar { flex-wrap: wrap; gap: 8px; }
+      .agenda-calendar .fc .fc-toolbar-chunk { display: flex; align-items: center; }
+      @media (max-width: 639px) {
+        .agenda-calendar .fc .fc-toolbar-title { font-size: 14px; order: -1; width: 100%; text-align: center; }
+        .agenda-calendar .fc .fc-button { font-size: 10px; padding: 3px 8px; }
+      }
         .agenda-calendar .fc .fc-toolbar-title { font-size: 16px; font-weight: 700; color: #f5f5f5; font-family: 'Space Grotesk', sans-serif; }
         .agenda-calendar .fc .fc-button { background: transparent; border: 1px solid #1f1f1f; color: #a0a0a0; font-size: 11px; font-weight: 600; border-radius: 8px; padding: 4px 10px; transition: all 0.2s; }
         .agenda-calendar .fc .fc-button:hover { background: rgba(255,255,255,0.05); color: #f5f5f5; }

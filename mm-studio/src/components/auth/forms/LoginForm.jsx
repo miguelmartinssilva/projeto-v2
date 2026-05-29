@@ -67,16 +67,16 @@ export default function LoginForm() {
           {errors.password && <p className="text-[10px] text-danger mt-1 ml-1">{errors.password.message}</p>}
         </div>
 
-        <div className="flex items-center justify-between">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)}
-              className="w-3.5 h-3.5 rounded border-border-card bg-bg-input accent-primary" />
-            <span className="text-[11px] text-text-muted">Lembrar de mim</span>
-          </label>
-          <button type="button" onClick={openRecovery} className="text-[11px] text-primary hover:underline font-medium">
-            Esqueceu a senha?
-          </button>
-        </div>
+<div className="flex items-center justify-between gap-2">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)}
+            className="w-3.5 h-3.5 rounded border-border-card bg-bg-input accent-primary" />
+          <span className="text-[11px] text-text-muted whitespace-nowrap">Lembrar de mim</span>
+        </label>
+        <button type="button" onClick={openRecovery} className="text-[11px] text-primary hover:underline font-medium whitespace-nowrap">
+          Esqueceu a senha?
+        </button>
+      </div>
 
         <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }} type="submit" disabled={loading}
           className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold btn-primary disabled:opacity-60 disabled:cursor-not-allowed">

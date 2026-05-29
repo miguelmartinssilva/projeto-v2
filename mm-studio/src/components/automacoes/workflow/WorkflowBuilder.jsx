@@ -21,7 +21,7 @@ export default function WorkflowBuilder({ autoId }) {
           <span className="text-[10px] text-text-muted bg-white/5 px-2 py-0.5 rounded">{edges.length} conexoes</span>
         </div>
       </div>
-      <div className="h-72" style={{ background: "#0d0d0d" }}>
+      <div className="h-64 sm:h-72 md:h-96" style={{ background: "#0d0d0d" }}>
         <ReactFlow
           nodes={nodes} edges={edges} nodeTypes={nodeTypes}
           defaultEdgeOptions={defaultEdgeOptions}

@@ -35,42 +35,42 @@ export default function Automacoes() {
     <div className="flex-1 min-h-screen page-enter">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <p className="text-xs text-text-muted mb-1 tracking-wide">
-              MM Studio <span className="mx-1.5 text-border-light">/</span>
-              <span className="text-text-secondary font-medium">Automacoes</span>
-            </p>
-            <h1 className="text-2xl font-display font-bold text-text leading-tight">Automacoes</h1>
-            <p className="text-xs text-text-muted mt-1">Automatize tarefas e integre seus sistemas</p>
-          </div>
-          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-            onClick={() => openDialog()}
-            className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg">
-            <Plus size={16} /> Nova Automacao
-          </motion.button>
+<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <p className="text-xs text-text-muted mb-1 tracking-wide">
+            MM Studio <span className="mx-1.5 text-border-light">/</span>
+            <span className="text-text-secondary font-medium">Automacoes</span>
+          </p>
+          <h1 className="text-2xl font-display font-bold text-text leading-tight">Automacoes</h1>
+          <p className="text-xs text-text-muted mt-1">Automatize tarefas e integre seus sistemas</p>
         </div>
+        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+          onClick={() => openDialog()}
+          className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg self-start sm:self-auto">
+          <Plus size={16} /> Nova Automacao
+        </motion.button>
+      </div>
 
         <MetricsCards />
 
-        <div className="flex items-center justify-between mt-6 mb-4">
-          <div className="flex items-center gap-1 bg-bg-card rounded-xl border border-border-card p-1">
-            {views.map(v => (
-              <button key={v.key} onClick={() => setView(v.key)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${view === v.key ? "bg-primary/15 text-primary" : "text-text-muted hover:text-text"}`}>
-                <v.icon size={13} /> {v.label}
-              </button>
-            ))}
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-              <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar automacoes..."
-                className="bg-bg-card border border-border-card rounded-lg pl-8 pr-3 py-2 text-xs text-text placeholder-text-muted outline-none focus:border-primary w-52" />
-            </div>
-            <FiltersDropdown />
-          </div>
+<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-6 mb-4">
+        <div className="flex items-center gap-1 bg-bg-card rounded-xl border border-border-card p-1 overflow-x-auto">
+          {views.map(v => (
+            <button key={v.key} onClick={() => setView(v.key)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${view === v.key ? "bg-primary/15 text-primary" : "text-text-muted hover:text-text"}`}>
+              <v.icon size={13} /> {v.label}
+            </button>
+          ))}
         </div>
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1 sm:flex-initial">
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+            <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar automacoes..."
+              className="w-full sm:w-52 bg-bg-card border border-border-card rounded-lg pl-8 pr-3 py-2 text-xs text-text placeholder-text-muted outline-none focus:border-primary" />
+          </div>
+          <FiltersDropdown />
+        </div>
+      </div>
 
         {view === "list" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">

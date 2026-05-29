@@ -53,7 +53,7 @@ export default function AnalyticsTable() {
   if (rows.length === 0) return <EmptyState title="Sem metricas" description="Nenhum dado para os filtros aplicados" />;
 
   return (
-    <div className="bg-bg-card rounded-2xl border border-border-card overflow-hidden">
+    <div className="bg-bg-card rounded-2xl border border-border-card overflow-hidden min-w-0">
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead>

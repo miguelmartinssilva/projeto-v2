@@ -21,7 +21,7 @@ export default function FiltersDropdown() {
           <>
             <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
             <motion.div initial={{ opacity: 0, y: -4, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -4, scale: 0.95 }}
-              className="absolute right-0 top-full mt-2 w-64 bg-bg-card rounded-xl border border-border-card shadow-2xl z-40 p-4">
+              className="absolute right-0 top-full mt-2 left-0 w-full sm:w-64 max-w-[calc(100vw-2rem)] bg-bg-card rounded-xl border border-border-card shadow-2xl z-40 p-4">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs font-semibold text-text">Filtros</span>
                 {hasFilters && <button onClick={clear} className="text-[10px] text-danger hover:underline">Limpar</button>}

@@ -22,7 +22,7 @@ export default function NotificationsDropdown() {
           <>
             <div className="fixed inset-0 z-30" onClick={closeNotif} />
             <motion.div initial={{ opacity: 0, y: -4, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -4, scale: 0.95 }}
-              className="absolute right-0 top-full mt-2 w-80 bg-bg-card rounded-xl border border-border-card shadow-2xl z-40 overflow-hidden">
+              className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] bg-bg-card rounded-xl border border-border-card shadow-2xl z-40 overflow-hidden">
               <div className="flex items-center justify-between px-4 py-3 border-b border-border-card">
                 <span className="text-xs font-semibold text-text">Notificacoes</span>
                 {unread > 0 && (

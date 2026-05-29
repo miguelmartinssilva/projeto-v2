@@ -24,17 +24,17 @@ export default function Crm() {
   return (
     <div className="flex-1 min-h-screen page-enter">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-start justify-between mb-8">
-          <div>
-            <p className="text-xs text-text-muted mb-1 tracking-wide">Visao geral <span className="mx-1.5 text-border-light">/</span><span className="text-text-secondary font-medium">CRM</span></p>
-            <h1 className="text-2xl font-display font-bold text-text leading-tight">CRM</h1>
-            <p className="text-xs text-text-muted mt-1">Gerencie seus clientes e pipeline de vendas</p>
-          </div>
-          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => openDialog()}
-            className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg">
-            <Plus size={16} /> Novo Cliente
-          </motion.button>
+<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div>
+          <p className="text-xs text-text-muted mb-1 tracking-wide">Visao geral <span className="mx-1.5 text-border-light">/</span><span className="text-text-secondary font-medium">CRM</span></p>
+          <h1 className="text-2xl font-display font-bold text-text leading-tight">CRM</h1>
+          <p className="text-xs text-text-muted mt-1">Gerencie seus clientes e pipeline de vendas</p>
         </div>
+        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => openDialog()}
+          className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg self-start sm:self-auto">
+          <Plus size={16} /> Novo Cliente
+        </motion.button>
+      </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           <MetricCard label="Total Clientes" value={metrics.total} icon={Users} color="#7c3aed" delay={0} />
@@ -43,8 +43,8 @@ export default function Crm() {
           <MetricCard label="Receita Pipeline" value={`R$ ${metrics.receita.toLocaleString("pt-BR")}`} icon={DollarSign} color="#00E676" delay={0.15} />
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between mb-4">
-          <div className="relative flex-1 max-w-xs">
+<div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between mb-4">
+        <div className="relative flex-1 max-w-xs w-full sm:w-auto">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
             <input type="text" placeholder="Buscar cliente..." value={search} onChange={e => setSearch(e.target.value)}
               className="w-full bg-bg-input border border-border-card rounded-lg pl-9 pr-3 py-2 text-sm text-text placeholder-text-muted outline-none focus:border-primary transition-colors" />

@@ -87,12 +87,12 @@ export default function Comercial() {
         </div>
 
         {/* SEARCH + FILTERS + VIEW TOGGLE */}
-        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between mb-4">
-          <div className="relative flex-1 max-w-xs">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-            <input type="text" placeholder="Buscar negociacao..." value={search} onChange={e => setSearch(e.target.value)}
-              className="w-full bg-bg-input border border-border-card rounded-lg pl-9 pr-3 py-2 text-sm text-text placeholder-text-muted outline-none focus:border-primary transition-colors" />
-          </div>
+<div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between mb-4">
+        <div className="relative flex-1 max-w-xs w-full sm:w-auto">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+          <input type="text" placeholder="Buscar negociacao..." value={search} onChange={e => setSearch(e.target.value)}
+            className="w-full bg-bg-input border border-border-card rounded-lg pl-9 pr-3 py-2 text-sm text-text placeholder-text-muted outline-none focus:border-primary transition-colors" />
+        </div>
           <div className="flex items-center gap-2">
             <FiltersDropdown />
             <div className="flex items-center bg-white/[0.03] rounded-lg p-0.5 border border-border-card">

@@ -50,47 +50,47 @@ export default function Financeiro() {
   return (
     <div className="flex-1 min-h-screen page-enter">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <p className="text-xs text-text-muted mb-1 tracking-wide">Visao geral <span className="mx-1.5 text-border-light">/</span><span className="text-text-secondary font-medium">Financeiro</span></p>
-            <h1 className="text-2xl font-display font-bold text-text leading-tight">Financeiro</h1>
-            <p className="text-xs text-text-muted mt-1">Controle financeiro do seu negocio</p>
-          </div>
-          <div className="flex gap-2">
-            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => openDialog("entrada")}
-              className="btn-primary flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg">
-              <Plus size={15} /> Entrada
-            </motion.button>
-            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => openDialog("saida")}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg bg-danger/15 text-danger hover:bg-danger/25 transition-colors">
-              <TrendingDown size={15} /> Saida
-            </motion.button>
-          </div>
+<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <p className="text-xs text-text-muted mb-1 tracking-wide">Visao geral <span className="mx-1.5 text-border-light">/</span><span className="text-text-secondary font-medium">Financeiro</span></p>
+          <h1 className="text-2xl font-display font-bold text-text leading-tight">Financeiro</h1>
+          <p className="text-xs text-text-muted mt-1">Controle financeiro do seu negocio</p>
         </div>
+        <div className="flex gap-2 self-start sm:self-auto">
+          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => openDialog("entrada")}
+            className="btn-primary flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg">
+            <Plus size={15} /> Entrada
+          </motion.button>
+          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => openDialog("saida")}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg bg-danger/15 text-danger hover:bg-danger/25 transition-colors">
+            <TrendingDown size={15} /> Saida
+          </motion.button>
+        </div>
+      </div>
 
         <MetricsCards />
 
-        <div className="flex items-center justify-between mt-6 mb-4">
-          <div className="flex items-center gap-1 bg-bg-card rounded-xl border border-border-card p-1">
-            {views.map(v => (
-              <button key={v.key} onClick={() => setView(v.key)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${view === v.key ? "bg-primary/15 text-primary" : "text-text-muted hover:text-text"}`}>
-                <v.icon size={13} /> {v.label}
-              </button>
-            ))}
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-              <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar..."
-                className="bg-bg-card border border-border-card rounded-lg pl-8 pr-3 py-2 text-xs text-text placeholder-text-muted outline-none focus:border-primary w-48" />
-            </div>
-            <FiltersDropdown />
-            <button onClick={exportCSV} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-white/5 text-text-muted hover:text-text transition-colors">
-              <Download size={13} /> CSV
+<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-6 mb-4">
+        <div className="flex items-center gap-1 bg-bg-card rounded-xl border border-border-card p-1 overflow-x-auto">
+          {views.map(v => (
+            <button key={v.key} onClick={() => setView(v.key)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${view === v.key ? "bg-primary/15 text-primary" : "text-text-muted hover:text-text"}`}>
+              <v.icon size={13} /> {v.label}
             </button>
-          </div>
+          ))}
         </div>
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1 sm:flex-initial">
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+            <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar..."
+              className="w-full sm:w-48 bg-bg-card border border-border-card rounded-lg pl-8 pr-3 py-2 text-xs text-text placeholder-text-muted outline-none focus:border-primary" />
+          </div>
+          <FiltersDropdown />
+          <button onClick={exportCSV} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-white/5 text-text-muted hover:text-text transition-colors whitespace-nowrap">
+            <Download size={13} /> CSV
+          </button>
+        </div>
+      </div>
 
         {view === "dashboard" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">

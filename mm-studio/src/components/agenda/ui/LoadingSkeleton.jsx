@@ -8,7 +8,7 @@ export default function LoadingSkeleton() {
           <div className="space-y-2"><div className="h-6 w-48 rounded bg-bg-elevated animate-pulse" /><div className="h-3 w-32 rounded bg-bg-elevated animate-pulse" /></div>
           <div className="h-10 w-40 rounded-xl bg-bg-elevated animate-pulse" />
         </div>
-        <div className="grid grid-cols-3 lg:grid-cols-6 gap-3">{[...Array(6)].map((_, i) => <div key={i} className="h-24 rounded-xl bg-bg-elevated animate-pulse" />)}</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">{[...Array(6)].map((_, i) => <div key={i} className="h-24 rounded-xl bg-bg-elevated animate-pulse" />)}</div>
         <div className="h-96 rounded-2xl bg-bg-elevated animate-pulse" />
       </div>
     </div>

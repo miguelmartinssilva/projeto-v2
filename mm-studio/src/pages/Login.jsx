@@ -15,7 +15,7 @@ export default function Login() {
     <div className="min-h-screen flex bg-bg-main">
       <BrandingPanel />
 
-      <div className="relative flex-1 flex flex-col items-center justify-center min-h-screen p-8">
+      <div className="relative flex-1 flex flex-col items-center justify-center min-h-screen p-4 sm:p-8">
         <div className="lg:hidden absolute inset-0 overflow-hidden pointer-events-none">
           <GradientBackground />
         </div>
